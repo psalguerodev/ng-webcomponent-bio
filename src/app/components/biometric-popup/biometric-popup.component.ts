@@ -50,7 +50,6 @@ export class BiometricPopupComponent implements OnInit, OnDestroy{
   }
 
   initValidation() {
-
   }
 
 }

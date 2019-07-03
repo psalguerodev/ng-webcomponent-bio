@@ -1,13 +1,13 @@
 import { Injectable, EventEmitter } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { catchError, map, delay, tap } from 'rxjs/operators';
-import { throwError, Subject, Observable, } from 'rxjs';
+import { catchError, map, delay, tap, finalize } from 'rxjs/operators';
+import { throwError, Subject, Observable, forkJoin  } from 'rxjs';
 import { WinUser } from '../models/winuser.model';
 import { BioInfo } from '../models/bioinfo.model';
 import { InputUser } from '../models/inputuser.model';
 import { BioPath } from '../config/bio.path';
-import { BioUtil } from '../util/bio.util.ts';
+import { BioUtil } from '../util/bio.util';
 
 @Injectable({
   providedIn: 'root'
@@ -34,7 +34,6 @@ export class BiometricService {
           if (!BioUtil.verifyInfoResponse(bioInfo)) {
             throw new Error('Ocurred error');
           }
-          return bioInfo;
         }),
         catchError(error => throwError(error)),
       );
@@ -52,14 +51,15 @@ export class BiometricService {
   }
 
   inicialize(inputUser: InputUser): void {
-    this.inputuser = inputUser;
-    this.getComputerInfo().subscribe((winuser: WinUser) => {
-      this.winuser = winuser;
-      this.getBestFingers().subscribe((fingerInfo: BioInfo) => {
-        this.bioinfo = fingerInfo;
+    forkJoin([this.getBestFingers(), this.getComputerInfo()])
+      .pipe(
+        finalize( () => console.log('End [Inicialize biometric]'))
+      )
+      .subscribe( responses => {
+        this.winuser = responses[1] as WinUser;
+        this.bioinfo = responses[0] as BioInfo;
         this.inicialize$.next(true);
-      }, _ => this.inicialize$.next(false));
-    }, _ => this.inicialize$.next(false));
+      }, error => this.inicialize$.next(false));
   }
 
   verifyFinger() {
