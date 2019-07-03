@@ -53,7 +53,7 @@ export class BiometricService {
   inicialize(inputUser: InputUser): void {
     forkJoin([this.getBestFingers(), this.getComputerInfo()])
       .pipe(
-        finalize( () => console.log('End [Inicialize biometric]'))
+        finalize( () => console.log('End [biometric_service]'))
       )
       .subscribe( responses => {
         this.winuser = responses[1] as WinUser;

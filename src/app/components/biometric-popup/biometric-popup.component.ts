@@ -19,11 +19,15 @@ export class BiometricPopupComponent implements OnInit, OnDestroy{
   intentNumber = 1;
   intentMax = 4;
   inicializeSubscription: Subscription;
+
   showError: boolean;
+  showValidateOk: boolean;
 
   constructor(private readonly dialogRef: MatDialogRef<BiometricPopupComponent>,
               @Inject(MAT_DIALOG_DATA) private readonly data: BiometricData,
-              private readonly biometricService: BiometricService) { }
+              private readonly biometricService: BiometricService) {
+    dialogRef.disableClose = true;
+  }
 
   ngOnInit() {
     this.documentNumber = this.data.documentNumber;
@@ -50,6 +54,14 @@ export class BiometricPopupComponent implements OnInit, OnDestroy{
   }
 
   initValidation() {
+    this.showPreviewImages = true;
+    setTimeout(_ => {
+      this.showValidateOk = true;
+    } , 2000);
+  }
+
+  cancelValidation() {
+    this.dialogRef.close();
   }
 
 }

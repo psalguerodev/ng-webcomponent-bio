@@ -23,14 +23,14 @@ export class BiometricButtonComponent implements OnInit {
   }
 
   invokePopUpBiometrics(): void {
-    console.log('invokePopUpBiometrics');
+    console.log('Open [biometrics_component]');
     const dialogRef = this.dialog.open(BiometricPopupComponent, {
       width: '700px',
       data: {documentType: this.documentType, documentNumber: this.documentNumber}
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
+      console.log('Closed [biometrics_component]');
       this.resultProcess = result;
     });
   }

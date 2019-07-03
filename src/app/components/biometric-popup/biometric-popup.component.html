@@ -1,13 +1,17 @@
 <div class="box-steps-header" *ngIf="isInicialize && !showError">
-  Intento {{ intentNumber }} de {{ intentMax }}
+  Intento <strong>{{ intentNumber }}</strong> de {{ intentMax }}
 </div>
 <div class="box-steps-header" *ngIf="!isInicialize && !showError">
   Inicializando biometría...
 </div>
 
 <div id="container-contend" *ngIf="isInicialize && !showError">
-  <h3 class="g2-title-main red" *ngIf="showPreviewImages">
+  <h3 class="g2-title-main red" *ngIf="showError">
     Ha ocurrido un error
+  </h3>
+
+  <h3 class="g2-title-main red" *ngIf="showValidateOk">
+    Verificación biométrica correcta
   </h3>
 
   <div class="g2-descripcion">
@@ -18,18 +22,17 @@
   </div>
 
   <!-- Reading finger -->
-  <img src="./assets/biometrics/paw-step.gif" class="img-hand"
-    *ngIf="showPreviewImages" />
+  <img src="./assets/biometrics/paw-step.gif" class="img-hand" *ngIf="showPreviewImages && !showValidateOk" />
   <!-- Finder by number -->
-  <img src="./assets/biometrics/finger_1.png" class="img-hand" />
+  <img src="./assets/biometrics/finger_1.png" class="img-hand" *ngIf="!showPreviewImages" />
   <!-- Validation finger OK -->
-  <img src="./assets/biometrics/paw-ok.jpg" class="img-hand" *ngIf="showPreviewImages" />
+  <img src="./assets/biometrics/paw-ok.jpg" class="img-hand" *ngIf="showPreviewImages && showValidateOk" />
 
   <div class="top-text-paw" style="text-align: center">10 segundos</div>
 
   <div class="g2-text-paw">
     <p>
-      Índice Derecho
+      Pulgar Derecho
     </p>
   </div>
 
@@ -49,10 +52,15 @@
 </div>
 
 
-<div class="footer-popup">
-  <button [disabled]="!isInicialize" class="button btn-initval"
+<div class="footer-popup" align="center">
+  <button [disabled]="!isInicialize" class="button btn-initval" style="display: inline;margin-right: 10px"
     (click)="initValidation()" mat-raised-button
     color="primary">
     Iniciar validación
+  </button>
+  <button [disabled]="!isInicialize" class="button btn-initval" style="display: inline;"
+    (click)="cancelValidation()" mat-raised-button
+    color="warn">
+    Cancelar
   </button>
 </div>
