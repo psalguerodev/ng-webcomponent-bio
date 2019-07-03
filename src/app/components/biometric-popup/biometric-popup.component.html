@@ -1,0 +1,58 @@
+<div class="box-steps-header" *ngIf="isInicialize && !showError">
+  Intento {{ intentNumber }} de {{ intentMax }}
+</div>
+<div class="box-steps-header" *ngIf="!isInicialize && !showError">
+  Inicializando biometría...
+</div>
+
+<div id="container-contend" *ngIf="isInicialize && !showError">
+  <h3 class="g2-title-main red" *ngIf="showPreviewImages">
+    Ha ocurrido un error
+  </h3>
+
+  <div class="g2-descripcion">
+    <p>
+      Ingresa en el lector la huella indicada a continuación
+    </p>
+    <p>{{ documentType }} | {{ documentNumber }}</p>
+  </div>
+
+  <!-- Reading finger -->
+  <img src="./assets/biometrics/paw-step.gif" class="img-hand"
+    *ngIf="showPreviewImages" />
+  <!-- Finder by number -->
+  <img src="./assets/biometrics/finger_1.png" class="img-hand" />
+  <!-- Validation finger OK -->
+  <img src="./assets/biometrics/paw-ok.jpg" class="img-hand" *ngIf="showPreviewImages" />
+
+  <div class="top-text-paw" style="text-align: center">10 segundos</div>
+
+  <div class="g2-text-paw">
+    <p>
+      Índice Derecho
+    </p>
+  </div>
+
+</div>
+
+<div id="container-loader" *ngIf="!isInicialize && !showError" align="center">
+  <mat-progress-spinner
+    class="example-margin"
+    [color]="'primary'"
+    [diameter]="50"
+    [mode]="'indeterminate'">
+  </mat-progress-spinner>
+</div>
+
+<div id="container-error" *ngIf="showError" >
+  Ha ocurrido un problema para inicializar Biometría
+</div>
+
+
+<div class="footer-popup">
+  <button [disabled]="!isInicialize" class="button btn-initval"
+    (click)="initValidation()" mat-raised-button
+    color="primary">
+    Iniciar validación
+  </button>
+</div>
