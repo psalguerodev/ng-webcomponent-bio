@@ -8,12 +8,15 @@ import { BiometricService } from './services/biometric.service';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatButtonModule, MatDialogModule, MatProgressSpinnerModule } from '@angular/material';
 import { HttpClientModule } from '@angular/common/http';
+import { HttpnativeService } from './services/httpnative.service';
+import { FingerPipe } from './pipes/finger.pipe';
 
 @NgModule({
   declarations: [
     AppComponent,
     BiometricButtonComponent,
     BiometricPopupComponent,
+    FingerPipe,
   ],
   imports: [
     BrowserModule,
@@ -24,7 +27,8 @@ import { HttpClientModule } from '@angular/common/http';
     MatProgressSpinnerModule
   ],
   providers: [
-    BiometricService
+    BiometricService,
+    HttpnativeService
   ],
   bootstrap: [AppComponent],
   entryComponents: [

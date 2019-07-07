@@ -3,6 +3,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 import { BiometricData } from '../../models/biometricdata.model';
 import { BiometricService } from '../../services/biometric.service';
 import { Subscription } from 'rxjs';
+import { BioInfo } from '../../models/bioinfo.model';
 
 @Component({
   selector: 'app-biometric-popup',
@@ -16,12 +17,12 @@ export class BiometricPopupComponent implements OnInit, OnDestroy{
   showPreviewImages: boolean;
   isLoading: boolean;
   isInicialize: boolean;
-  intentNumber = 1;
-  intentMax = 4;
   inicializeSubscription: Subscription;
 
   showError: boolean;
   showValidateOk: boolean;
+
+  currentFinger: string;
 
   constructor(private readonly dialogRef: MatDialogRef<BiometricPopupComponent>,
               @Inject(MAT_DIALOG_DATA) private readonly data: BiometricData,
@@ -43,6 +44,11 @@ export class BiometricPopupComponent implements OnInit, OnDestroy{
         this.isLoading = false;
         this.isInicialize = isInicialize;
         this.showError = (!this.isInicialize ) ? true : false;
+
+        if (this.isInicialize) {
+          this.currentFinger = this.biometricService.nextFinger;
+        }
+
       });
   }
 
@@ -54,10 +60,6 @@ export class BiometricPopupComponent implements OnInit, OnDestroy{
   }
 
   initValidation() {
-    this.showPreviewImages = true;
-    setTimeout(_ => {
-      this.showValidateOk = true;
-    } , 2000);
   }
 
   cancelValidation() {

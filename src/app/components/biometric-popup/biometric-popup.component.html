@@ -1,6 +1,7 @@
-<div class="box-steps-header" *ngIf="isInicialize && !showError">
-  Intento <strong>{{ intentNumber }}</strong> de {{ intentMax }}
+<div class="box-steps-header"  *ngIf="isInicialize && !showError">
+  Intento {{ 1 }} de {{ 4 }}
 </div>
+
 <div class="box-steps-header" *ngIf="!isInicialize && !showError">
   Inicializando biometría...
 </div>
@@ -14,26 +15,24 @@
     Verificación biométrica correcta
   </h3>
 
-  <div class="g2-descripcion">
+  <div class="g2-descripcion" style="font-size: 16px;">
     <p>
       Ingresa en el lector la huella indicada a continuación
     </p>
-    <p>{{ documentType }} | {{ documentNumber }}</p>
+    <strong><p>{{ documentType }} | {{ documentNumber }}</p></strong>
   </div>
 
   <!-- Reading finger -->
   <img src="./assets/biometrics/paw-step.gif" class="img-hand" *ngIf="showPreviewImages && !showValidateOk" />
   <!-- Finder by number -->
-  <img src="./assets/biometrics/finger_1.png" class="img-hand" *ngIf="!showPreviewImages" />
+  <img src="./assets/biometrics/finger_2.png" class="img-hand" *ngIf="!showPreviewImages" />
   <!-- Validation finger OK -->
   <img src="./assets/biometrics/paw-ok.jpg" class="img-hand" *ngIf="showPreviewImages && showValidateOk" />
 
   <div class="top-text-paw" style="text-align: center">10 segundos</div>
 
   <div class="g2-text-paw">
-    <p>
-      Pulgar Derecho
-    </p>
+    <p>{{ currentFinger | finger }}</p>
   </div>
 
 </div>
@@ -58,7 +57,7 @@
     color="primary">
     Iniciar validación
   </button>
-  <button [disabled]="!isInicialize" class="button btn-initval" style="display: inline;"
+  <button [disabled]="isLoading" class="button btn-initval" style="display: inline;"
     (click)="cancelValidation()" mat-raised-button
     color="warn">
     Cancelar

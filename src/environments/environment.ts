@@ -4,7 +4,8 @@
 
 export const environment = {
   production: false,
-  agentApi: 'http://localhost:3005'
+  base_api: 'http://142.93.89.210:4001',
+  base_biomatch: 'http://142.93.89.210:4001'
 };
 
 /*
