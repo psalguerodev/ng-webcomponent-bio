@@ -1,5 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { NgModule, Injector } from '@angular/core';
+import { createCustomElement } from '@angular/elements';
 
 import { AppComponent } from './app.component';
 import { BiometricButtonComponent } from './components/biometric-button/biometric-button.component';
@@ -10,6 +11,10 @@ import { MatButtonModule, MatDialogModule, MatProgressSpinnerModule } from '@ang
 import { HttpClientModule } from '@angular/common/http';
 import { HttpnativeService } from './services/httpnative.service';
 import { FingerPipe } from './pipes/finger.pipe';
+import { ImagePipe } from './pipes/image.pipe';
+import { FingerimagePipe } from './pipes/fingerimage.pipe';
+
+declare const customElements;
 
 @NgModule({
   declarations: [
@@ -17,6 +22,8 @@ import { FingerPipe } from './pipes/finger.pipe';
     BiometricButtonComponent,
     BiometricPopupComponent,
     FingerPipe,
+    ImagePipe,
+    FingerimagePipe,
   ],
   imports: [
     BrowserModule,
@@ -30,7 +37,7 @@ import { FingerPipe } from './pipes/finger.pipe';
     BiometricService,
     HttpnativeService
   ],
-  bootstrap: [AppComponent],
+  // bootstrap: [AppComponent],
   entryComponents: [
     BiometricButtonComponent,
     BiometricPopupComponent,
@@ -38,6 +45,13 @@ import { FingerPipe } from './pipes/finger.pipe';
 })
 export class AppModule {
 
+  constructor(private readonly injector: Injector) {}
 
+  ngDoBootstrap(): void {
+    console.log('[ibk-bio] inicialize');
+    const { injector } = this;
+    const ngCustomElement = createCustomElement(BiometricButtonComponent, { injector });
+    customElements.define('ibk-bio', ngCustomElement);
+  }
 
 }

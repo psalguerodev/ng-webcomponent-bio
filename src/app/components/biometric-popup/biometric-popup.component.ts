@@ -1,9 +1,9 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 import { BiometricData } from '../../models/biometricdata.model';
-import { BiometricService } from '../../services/biometric.service';
+import { BiometricService, HandlerValidation } from '../../services/biometric.service';
 import { Subscription } from 'rxjs';
-import { BioInfo } from '../../models/bioinfo.model';
+import { BioConst } from '../../config/bio.const';
 
 @Component({
   selector: 'app-biometric-popup',
@@ -14,20 +14,27 @@ export class BiometricPopupComponent implements OnInit, OnDestroy{
 
   documentType: string;
   documentNumber: string;
-  showPreviewImages: boolean;
-  isLoading: boolean;
   isInicialize: boolean;
-  inicializeSubscription: Subscription;
 
+  inicializeSubscription: Subscription;
+  validationSubscription: Subscription;
+
+  isLoading: boolean;
+  isFinal = false;
+  showPreviewImages: boolean;
   showError: boolean;
+  messageError: string;
   showValidateOk: boolean;
 
   currentFinger: string;
+  currentIntent: number;
+  maxIntent: number;
 
   constructor(private readonly dialogRef: MatDialogRef<BiometricPopupComponent>,
               @Inject(MAT_DIALOG_DATA) private readonly data: BiometricData,
               private readonly biometricService: BiometricService) {
     dialogRef.disableClose = true;
+    this.maxIntent = BioConst.defaultMaxIntent;
   }
 
   ngOnInit() {
@@ -47,8 +54,8 @@ export class BiometricPopupComponent implements OnInit, OnDestroy{
 
         if (this.isInicialize) {
           this.currentFinger = this.biometricService.nextFinger;
+          this.currentIntent = this.biometricService.currentIntent;
         }
-
       });
   }
 
@@ -60,6 +67,14 @@ export class BiometricPopupComponent implements OnInit, OnDestroy{
   }
 
   initValidation() {
+    this.isLoading = true;
+    this.biometricService.validation$.subscribe((response: HandlerValidation) => {
+      this.currentFinger = this.biometricService.nextFinger;
+      this.currentIntent = this.biometricService.currentIntent;
+      this.isFinal = response.isFinal;
+      this.isLoading = false;
+    });
+    this.biometricService.inicializeValidation();
   }
 
   cancelValidation() {

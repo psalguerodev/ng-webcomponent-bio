@@ -1,4 +1,7 @@
 export const environment = {
   production: true,
-  base_path : 'http://142.93.89.210:4001'
+  base_api: 'https://api.psalguero.me',
+  base_biomatch: 'https://api.psalguero.me',
+  assets_path: 'https://psalguero.sfo2.digitaloceanspaces.com',
+  gategay_path: '/ibk/uat',
 };

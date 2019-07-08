@@ -1,10 +1,25 @@
 import { BioInfo } from '../models/bioinfo.model';
 import { WinUser } from '../models/winuser.model';
+import { BioConst } from '../config/bio.const';
+import { BioVerify } from '../models/bioverify.model';
+import { BioStatus } from '../models/bio.status';
 
-export class BioBusiness {
+export class BioValidators {
+
+  private static validateGategayField(biofield: string): boolean {
+    if (biofield !== undefined && biofield.length > 0 && biofield !== '0') {
+      return true;
+    }
+    return false;
+  }
 
   static verifyInfoResponse(bioInfo: BioInfo): boolean {
     // Service Logic
+    const bioGategayErrors: string[] = BioConst.bioGateyayStatus
+                                      .filter( s => s.isError === true).map(s => s.code);
+    if (bioInfo.indMejorHuellaDer === undefined || bioGategayErrors.indexOf(bioInfo.codigoRespuesta) !== -1) {
+      return false;
+    }
     return true;
   }
 
@@ -13,14 +28,52 @@ export class BioBusiness {
     return true;
   }
 
-  static verifyValidFinger(verify: any): boolean {
+  static verifyValidFinger(verify: BioVerify): boolean {
     // Service Logic
-    return true;
+    const errorsReniec: string[] = BioConst.reniecStatus.filter(s => s.isError === true)
+      .map(r => r.code);
+    const bioGatewayErrors: string[] = BioConst.bioGateyayStatus.filter(s => s.isError === true)
+      .map(r => r.code);
+
+    if (verify !== undefined && errorsReniec.indexOf(verify.codigoRespuestaReniec) !== -1
+         && bioGatewayErrors.indexOf(verify.codigoRespuesta) !== -1 ) {
+      return true;
+    }
+
+    return false;
   }
 
   static getNextFinger(bioInfo: BioInfo, intent: number): string {
     // Business Logic
-    return '1';
+    switch (intent) {
+      case 1:
+        if (this.validateGategayField(bioInfo.indHuellaDer)) {
+          return bioInfo.indHuellaDer;
+        } else if ( this.validateGategayField(bioInfo.indHuellaIzq)) {
+          return bioInfo.indHuellaIzq;
+        } else if (this.validateGategayField(bioInfo.indMejorHuellaDer)) {
+          return bioInfo.indMejorHuellaDer;
+        } else {
+          return bioInfo.indMejorHuellaIzq;
+        }
+     case 2:
+       if (this.validateGategayField(bioInfo.indHuellaIzq)) {
+         return bioInfo.indHuellaIzq;
+       } else if (this.validateGategayField(bioInfo.indMejorHuellaDer)) {
+         return bioInfo.indMejorHuellaDer;
+       } else {
+         return bioInfo.indMejorHuellaIzq;
+       }
+     case 3:
+       if (this.validateGategayField(bioInfo.indMejorHuellaDer)) {
+         return bioInfo.indMejorHuellaDer;
+       } else {
+         return bioInfo.indMejorHuellaIzq;
+       }
+      case 4:
+        return bioInfo.indMejorHuellaIzq;
+    }
+    return BioConst.fingers[1].number;
   }
 
   static generateRequestCheck(): string {
@@ -53,5 +106,17 @@ export class BioBusiness {
           </ws:bioTxn>
         </soapenv:Body>
       </soapenv:Envelope>`;
+  }
+
+  static findMessageByCode(status: string): string {
+    let message = '';
+    if (status === undefined) {
+      return message;
+    }
+    const reniecStatus: BioStatus[] = BioConst.reniecStatus;
+    const biogategayStatus: BioStatus[] = BioConst.bioGateyayStatus;
+    const joinStatus = reniecStatus.concat(biogategayStatus);
+    message = joinStatus.find( s => s.code === status ).description;
+    return message;
   }
 }

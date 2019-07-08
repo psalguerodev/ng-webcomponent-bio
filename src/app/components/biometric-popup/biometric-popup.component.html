@@ -1,21 +1,21 @@
-<div class="box-steps-header"  *ngIf="isInicialize && !showError">
-  Intento {{ 1 }} de {{ 4 }}
+<div class="xbox-steps-header"  *ngIf="isInicialize && !showError">
+  Intento {{ currentIntent }} de {{ maxIntent }}
 </div>
 
-<div class="box-steps-header" *ngIf="!isInicialize && !showError">
+<div class="xbox-steps-header" *ngIf="!isInicialize && !showError">
   Inicializando biometría...
 </div>
 
-<div id="container-contend" *ngIf="isInicialize && !showError">
-  <h3 class="g2-title-main red" *ngIf="showError">
+<div id="xcontainer-contend" *ngIf="isInicialize && !showError">
+  <h3 class="xg2-title-main red" *ngIf="showError">
     Ha ocurrido un error
   </h3>
 
-  <h3 class="g2-title-main red" *ngIf="showValidateOk">
+  <h3 class="xg2-title-main red" *ngIf="showValidateOk">
     Verificación biométrica correcta
   </h3>
 
-  <div class="g2-descripcion" style="font-size: 16px;">
+  <div class="xg2-descripcion" style="font-size: 16px;">
     <p>
       Ingresa en el lector la huella indicada a continuación
     </p>
@@ -23,23 +23,23 @@
   </div>
 
   <!-- Reading finger -->
-  <img src="./assets/biometrics/paw-step.gif" class="img-hand" *ngIf="showPreviewImages && !showValidateOk" />
+  <img [src]="'/bio/paw-step.gif' | image" class="ximg-hand" *ngIf="(showPreviewImages && !showValidateOk) || isLoading" />
   <!-- Finder by number -->
-  <img src="./assets/biometrics/finger_2.png" class="img-hand" *ngIf="!showPreviewImages" />
+  <img [src]="currentFinger | fingerimage | image" class="ximg-hand" *ngIf="!showPreviewImages && !isLoading" />
   <!-- Validation finger OK -->
-  <img src="./assets/biometrics/paw-ok.jpg" class="img-hand" *ngIf="showPreviewImages && showValidateOk" />
+  <img [src]="'/bio/paw-ok.jpg' | image" class="ximg-hand" *ngIf="showPreviewImages && showValidateOk" />
 
-  <div class="top-text-paw" style="text-align: center">10 segundos</div>
+  <!-- <div class="xtop-text-paw" style="text-align: center">10 segundos</div> -->
 
-  <div class="g2-text-paw">
-    <p>{{ currentFinger | finger }}</p>
+  <div class="xg2-text-paw">
+    <p *ngIf="!isLoading" >{{ currentFinger | finger }}</p>
+    <p *ngIf="isLoading" >Cargando ...</p>
   </div>
-
 </div>
 
-<div id="container-loader" *ngIf="!isInicialize && !showError" align="center">
+<div id="container-loader" *ngIf="(!isInicialize && !showError)" align="center">
   <mat-progress-spinner
-    class="example-margin"
+    class="xexample-margin"
     [color]="'primary'"
     [diameter]="50"
     [mode]="'indeterminate'">
@@ -50,14 +50,13 @@
   Ha ocurrido un problema para inicializar Biometría
 </div>
 
-
-<div class="footer-popup" align="center">
-  <button [disabled]="!isInicialize" class="button btn-initval" style="display: inline;margin-right: 10px"
+<div class="xfooter-popup" align="center">
+  <button [disabled]="(!isInicialize || isLoading) || isFinal" class="xbutton btn-initval" style="display: inline;margin-right: 10px"
     (click)="initValidation()" mat-raised-button
     color="primary">
     Iniciar validación
   </button>
-  <button [disabled]="isLoading" class="button btn-initval" style="display: inline;"
+  <button [disabled]="isLoading" class="xbutton btn-initval" style="display: inline;"
     (click)="cancelValidation()" mat-raised-button
     color="warn">
     Cancelar
