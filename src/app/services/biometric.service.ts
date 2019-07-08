@@ -105,6 +105,7 @@ export class BiometricService {
 
   inicializeValidation(): void {
     this.invokeBiomatch().subscribe(data => {
+      console.log(`Transform Dat`, data);
       this.verifyFinger()
       .subscribe( (response) => {
         this.validation$.next({

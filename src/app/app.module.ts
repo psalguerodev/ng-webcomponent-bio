@@ -37,7 +37,7 @@ declare const customElements;
     BiometricService,
     HttpnativeService
   ],
-  // bootstrap: [AppComponent],
+  bootstrap: [AppComponent],
   entryComponents: [
     BiometricButtonComponent,
     BiometricPopupComponent,
