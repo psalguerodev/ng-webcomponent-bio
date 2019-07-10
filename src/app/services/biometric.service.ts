@@ -13,6 +13,7 @@ import { AxiosResponse } from 'axios';
 import { BioVerify } from '../models/bioverify.model';
 import { BioOperation } from '../enums/bio.operation';
 
+declare const DOMParser;
 const DELAY_RESPONSE = 0;
 
 export interface HandlerValidation {
@@ -26,12 +27,13 @@ export interface HandlerValidation {
 })
 export class BiometricService {
 
-  inicialize$: Subject<boolean> = new Subject<boolean>();
+  inicialize$: Subject<HandlerValidation> = new Subject<HandlerValidation>();
   validation$: Subject<HandlerValidation> = new Subject<HandlerValidation>();
 
   inputUser: InputUser;
   winuser: WinUser;
   bioinfo: BioInfo;
+  bioverify: BioVerify;
   currentOperation: BioOperation;
 
   isFinalIntent = false;
@@ -97,25 +99,41 @@ export class BiometricService {
       );
   }
 
-  invokeBiomatch(): Observable<any> {
+  invokeBiomatch(): Observable<{ isError: boolean; template: string}> {
     return this.httpNative.post<any>(`${environment.base_biomatch}${BioConst.biomatchPath}`,
       BioValidators.generateRequestVerify(), null)
-      .pipe(delay(2000));
+      .pipe(
+        map(response => {
+          const parser = new DOMParser();
+          const xmlResponse = parser.parseFromString(response.data, 'text/xml') ;
+          const returnValue = xmlResponse.querySelectorAll('return');
+          const resultResponse: string = returnValue[0].textContent;
+          const resultSplit: string[] = resultResponse.split(':');
+          const codeResponse = resultSplit[0]; // Status reponse
+
+          if (!BioValidators.verifyBiomatchInvokeResponse(codeResponse)) {
+            throw new Error('Error.....');
+          }
+
+          const fingerTemplate = BioValidators.transformResponseBiomatch(resultSplit[1]);
+          return { isError: false, template: fingerTemplate };
+
+        }),
+        catchError(error => throwError(error.message)),
+        delay(DELAY_RESPONSE)
+      );
   }
 
   inicializeValidation(): void {
-    this.invokeBiomatch().subscribe(data => {
-      console.log(`Transform Dat`, data);
-      this.verifyFinger()
-      .subscribe( (response) => {
-        this.validation$.next({
-          message: 'Este es un mensaje',
-          isFinal: this.isFinalIntent,
-          isError: false });
-      }, error => this.validation$.next({
-        isError: true,
-        message: error,
-        isFinal: this.isFinalIntent }));
+    this.invokeBiomatch().subscribe((templateResonse: { isError: boolean, template: string}) => {
+      console.log(templateResonse.template);
+
+      this.verifyFinger().subscribe( (response) => {
+        this.validation$.next({  message: 'Este es un mensaje', isFinal: this.isFinalIntent, isError: false });
+      }, error => this.validation$.next({ isError: true, message: error, isFinal: this.isFinalIntent }));
+
+    }, error => {
+        this.validation$.next({ isError: true, message: error, isFinal: this.isFinalIntent });
     });
   }
 
@@ -127,12 +145,13 @@ export class BiometricService {
           return response.MessageResponse.Body.verifyMorphoResponse.return as BioVerify;
         }),
         tap((verify: BioVerify) => {
+          this.bioverify = verify;
           this.getNextFinger();
           if (!BioValidators.verifyValidFinger(verify)) {
             if (this.currentOperation === BioOperation.LOCAL) {
-              throw new Error(BioValidators.findMessageByCode(verify.descripcionRespuesta)).message || 'Ocurrió un error';
+              throw new Error(BioValidators.findMessageByCode(verify.descripcionRespuesta)).message;
             }
-            throw new Error(BioValidators.findMessageByCode(verify.codigoRespuestaReniec)).message || 'Ocurrió un error';
+            throw new Error(BioValidators.findMessageByCode(verify.codigoRespuestaReniec)).message;
           }
         }),
         catchError(error => throwError(error))
@@ -150,10 +169,10 @@ export class BiometricService {
         this.isCheckBiomatch = responses[0] as boolean;
         this.bioinfo = responses[1] as BioInfo;
         this.winuser = responses[2] as WinUser;
-        this.inicialize$.next(true);
-      }, _ => {
-        this.inicialize$.next(false);
-        console.log(_);
+        this.inicialize$.next({  isError: false, message: '', isFinal: false });
+      }, error => {
+        this.inicialize$.next({ isError: true, message: error, isFinal: false });
+        console.log(error);
       });
   }
 

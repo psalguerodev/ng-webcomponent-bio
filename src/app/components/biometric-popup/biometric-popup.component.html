@@ -20,6 +20,15 @@
       Ingresa en el lector la huella indicada a continuación
     </p>
     <strong><p>{{ documentType }} | {{ documentNumber }}</p></strong>
+    <p *ngIf="currentVerify" style="color: darkblue;">
+      {{ currentVerify.nombreCliente }} {{ currentVerify.apellidoPatCliente }} {{ currentVerify.apellidoMatCliente }}
+    </p>
+    <p *ngIf="handlerValidation"  style="color: darkred;">
+      {{ handlerValidation.message }}
+    </p>
+    <p *ngIf="isFinal && handlerValidation.isError" style="color: darkred;">
+      Máximo de intentos alcanzados...
+    </p>
   </div>
 
   <!-- Reading finger -->
@@ -57,7 +66,7 @@
     Iniciar validación
   </button>
   <button [disabled]="isLoading" class="xbutton btn-initval" style="display: inline;"
-    (click)="cancelValidation()" mat-raised-button
+    (click)="cancelValidation(false)" mat-raised-button
     color="warn">
     Cancelar
   </button>

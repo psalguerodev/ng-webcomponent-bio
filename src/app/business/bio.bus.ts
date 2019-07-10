@@ -76,6 +76,10 @@ export class BioValidators {
     return BioConst.fingers[1].number;
   }
 
+  static verifyBiomatchInvokeResponse(statusCode: string): boolean {
+    return true;
+  }
+
   static generateRequestCheck(): string {
     return `<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope\'
               xmlns:ws='http://ws.client.match.bio.zy.com'>
@@ -119,4 +123,26 @@ export class BioValidators {
     message = joinStatus.find( s => s.code === status ).description;
     return message;
   }
+
+  static convertHex2Ascii(value: string): string {
+    const hex = value.toString();
+    let str = '';
+    for (let i = 0; (i < hex.length && hex.substr(i, 2) !== '00'); i += 2) {
+        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+    }
+    return str;
+  }
+
+  static  convertHexToBase64(value: string): string {
+    return btoa(String.fromCharCode.apply(null,
+      value.replace(/\r|\n/g, '').replace(/([\da-fA-F]{2}) ?/g, '0x$1 ').replace(/ +$/, '').split(' '))
+    );
+  }
+
+  static transformResponseBiomatch(value: string): string {
+    const bodyResponseString: string = BioValidators.convertHex2Ascii(value);
+    const bodyResponseTemplate: string = BioValidators.convertHexToBase64(bodyResponseString.split(':')[5]);
+    return bodyResponseTemplate;
+  }
+
 }

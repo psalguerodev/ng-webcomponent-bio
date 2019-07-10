@@ -4,6 +4,7 @@ import { fromPromise } from 'rxjs/internal/observable/fromPromise';
 import { Observable } from 'rxjs';
 import { AxiosResponse } from 'axios';
 
+const TIMEOUT_NATIVE = 30000;
 @Injectable({
   providedIn: 'root'
 })
@@ -16,7 +17,7 @@ export class HttpnativeService {
       headers: {
         'Content-Type': 'text/xml'
       },
-      timeout: 10000
+      timeout: TIMEOUT_NATIVE
     }));
   }
 }

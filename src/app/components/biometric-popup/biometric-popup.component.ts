@@ -1,16 +1,18 @@
-import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
+import { Component, OnInit, Inject, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 import { BiometricData } from '../../models/biometricdata.model';
 import { BiometricService, HandlerValidation } from '../../services/biometric.service';
 import { Subscription } from 'rxjs';
 import { BioConst } from '../../config/bio.const';
+import { BioVerify } from '../../models/bioverify.model';
 
 @Component({
   selector: 'app-biometric-popup',
   templateUrl: './biometric-popup.component.html',
-  styleUrls: ['./biometric-popup.component.styl']
+  styleUrls: ['./biometric-popup.component.styl'],
+  encapsulation: ViewEncapsulation.None
 })
-export class BiometricPopupComponent implements OnInit, OnDestroy{
+export class BiometricPopupComponent implements OnInit, OnDestroy {
 
   documentType: string;
   documentNumber: string;
@@ -30,6 +32,9 @@ export class BiometricPopupComponent implements OnInit, OnDestroy{
   currentIntent: number;
   maxIntent: number;
 
+  currentVerify: BioVerify;
+  handlerValidation: HandlerValidation;
+
   constructor(private readonly dialogRef: MatDialogRef<BiometricPopupComponent>,
               @Inject(MAT_DIALOG_DATA) private readonly data: BiometricData,
               private readonly biometricService: BiometricService) {
@@ -47,9 +52,9 @@ export class BiometricPopupComponent implements OnInit, OnDestroy{
 
     this.isLoading = true;
     this.inicializeSubscription = this.biometricService.inicialize$
-      .subscribe((isInicialize: boolean) => {
+      .subscribe((validation: HandlerValidation) => {
         this.isLoading = false;
-        this.isInicialize = isInicialize;
+        this.isInicialize = !validation.isError;
         this.showError = (!this.isInicialize ) ? true : false;
 
         if (this.isInicialize) {
@@ -68,17 +73,26 @@ export class BiometricPopupComponent implements OnInit, OnDestroy{
 
   initValidation() {
     this.isLoading = true;
+    this.handlerValidation = undefined;
     this.biometricService.validation$.subscribe((response: HandlerValidation) => {
       this.currentFinger = this.biometricService.nextFinger;
       this.currentIntent = this.biometricService.currentIntent;
       this.isFinal = response.isFinal;
       this.isLoading = false;
+      this.currentVerify = this.biometricService.bioverify;
+      this.handlerValidation = response;
+      if ( this.isFinal) {
+         setTimeout(_ => this.cancelValidation(true) , 2000);
+      }
     });
     this.biometricService.inicializeValidation();
   }
 
-  cancelValidation() {
-    this.dialogRef.close();
+  cancelValidation(invoke: boolean) {
+    if (!invoke) {
+      this.handlerValidation = { isError: false, message: 'Se canceló la operación', isFinal: false};
+    }
+    this.dialogRef.close(this.handlerValidation);
   }
 
 }
