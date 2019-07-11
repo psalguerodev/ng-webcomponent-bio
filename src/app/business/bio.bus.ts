@@ -81,17 +81,16 @@ export class BioValidators {
   }
 
   static generateRequestCheck(): string {
-    return `<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope\'
+    return `<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/'
               xmlns:ws='http://ws.client.match.bio.zy.com'>
         <soapenv:Header/>
         <soapenv:Body>
-          <ws:check>
-          </ws:check>
+          <ws:check></ws:check>
         </soapenv:Body>
       </soapenv:Envelope>`;
   }
 
-  static generateRequestVerify(): string {
+  static generateRequestVerify(fingerNumber: string): string {
     return `<?xml version='1.0' encoding='UTF-8'?>
       <soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/'
         xmlns:ws='http://ws.client.match.bio.zy.com/'>
@@ -100,7 +99,7 @@ export class BioValidators {
           <ws:bioTxn>
             <arg0>200</arg0>
             <arg1>200</arg1>
-            <arg2>1</arg2>
+            <arg2>${fingerNumber}</arg2>
             <arg3>1</arg3>
             <arg4>80</arg4>
             <arg5>60</arg5>

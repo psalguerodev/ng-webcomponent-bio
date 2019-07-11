@@ -60,6 +60,9 @@ export class BiometricPopupComponent implements OnInit, OnDestroy {
         if (this.isInicialize) {
           this.currentFinger = this.biometricService.nextFinger;
           this.currentIntent = this.biometricService.currentIntent;
+        } else {
+          this.handlerValidation = { isError: true, message: validation.message , isFinal: false};
+          setTimeout(_ => this.cancelValidation(true) , 2000);
         }
       });
   }

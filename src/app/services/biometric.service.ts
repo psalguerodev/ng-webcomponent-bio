@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { catchError, map, delay, tap, finalize } from 'rxjs/operators';
+import { catchError, map, tap, finalize } from 'rxjs/operators';
 import { throwError, Subject, Observable, forkJoin } from 'rxjs';
 import { WinUser } from '../models/winuser.model';
 import { BioInfo } from '../models/bioinfo.model';
@@ -12,9 +12,10 @@ import { HttpnativeService } from './httpnative.service';
 import { AxiosResponse } from 'axios';
 import { BioVerify } from '../models/bioverify.model';
 import { BioOperation } from '../enums/bio.operation';
+import { BioVerifyRequest } from '../models/request/bioverify.request';
+import { BioInfoRequest } from '../models/request/bioinfo.request';
 
 declare const DOMParser;
-const DELAY_RESPONSE = 0;
 
 export interface HandlerValidation {
   isFinal: boolean;
@@ -39,7 +40,14 @@ export class BiometricService {
   isFinalIntent = false;
   isCheckBiomatch: boolean;
   nextFinger: string;
+  currentTemplate: string;
   currentIntent = 0;
+
+  private headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-IBM-Client-Id': environment.bioConfig.x_ibm_client_id
+  });
 
   constructor(private readonly http: HttpClient,
               private readonly httpNative: HttpnativeService) { }
@@ -47,7 +55,6 @@ export class BiometricService {
   private getComputerInfo(): Observable<WinUser> {
     return this.http.get(`${environment.base_api}${BioConst.wininfoPath}`)
       .pipe(
-        delay(DELAY_RESPONSE),
         map((response: any) => {
           return response.user as WinUser;
         }),
@@ -64,15 +71,33 @@ export class BiometricService {
     }
   }
 
+
+
   private getNextFinger(): void {
     this.incrementIntent();
     this.nextFinger =  BioValidators.getNextFinger(this.bioinfo, this.currentIntent);
   }
 
-  private getBestFingers(inputUser: InputUser) {
-    return this.http.get(`${environment.base_api}${BioConst.getInfoPath}`)
+  private getBestFingers() {
+    const requestParams: BioInfoRequest = {
+      coError: '',
+      dniAutorizador: environment.bioConfig.dni_authorizer,
+      host: 'XXXNAMEXXX',
+      ipCliente: '127.0.0.1',
+      isError: '',
+      numeroDocumento: this.inputUser.documentNumber,
+      macCliente: 'MAC-XXX-MAC-XX',
+      numeroSolicitud: '',
+      tipoDocumento: 'DNI',
+      usuario: 'S36413'
+    };
+
+    const params = this.getParams(requestParams);
+
+    const headers = this.headers;
+
+    return this.http.get(`${environment.base_api}${BioConst.getInfoPath}`, { params, headers })
       .pipe(
-        delay(DELAY_RESPONSE),
         map((response: any) => {
           return response.MessageResponse.Body.getInfoResponse.return as BioInfo;
         }),
@@ -88,6 +113,17 @@ export class BiometricService {
       );
   }
 
+  private getParams(request: object): HttpParams {
+    let httpParams = new HttpParams();
+    for (const key in request) {
+      if (request.hasOwnProperty(key)) {
+        httpParams = httpParams.set(key, request[key]);
+      }
+    }
+
+    return httpParams;
+  }
+
   private checkBiomatch(): Observable<boolean> {
     return this.httpNative.post<any>(`${environment.base_biomatch}${BioConst.biomatchPath}`,
       BioValidators.generateRequestCheck(), null)
@@ -100,8 +136,9 @@ export class BiometricService {
   }
 
   invokeBiomatch(): Observable<{ isError: boolean; template: string}> {
+    console.log(`[invokeBiomatch] Next Finger is ${this.nextFinger}`);
     return this.httpNative.post<any>(`${environment.base_biomatch}${BioConst.biomatchPath}`,
-      BioValidators.generateRequestVerify(), null)
+      BioValidators.generateRequestVerify(this.nextFinger), null)
       .pipe(
         map(response => {
           const parser = new DOMParser();
@@ -120,14 +157,12 @@ export class BiometricService {
 
         }),
         catchError(error => throwError(error.message)),
-        delay(DELAY_RESPONSE)
       );
   }
 
   inicializeValidation(): void {
     this.invokeBiomatch().subscribe((templateResonse: { isError: boolean, template: string}) => {
-      console.log(templateResonse.template);
-
+      this.currentTemplate = templateResonse.template;
       this.verifyFinger().subscribe( (response) => {
         this.validation$.next({  message: 'Este es un mensaje', isFinal: this.isFinalIntent, isError: false });
       }, error => this.validation$.next({ isError: true, message: error, isFinal: this.isFinalIntent }));
@@ -137,10 +172,33 @@ export class BiometricService {
     });
   }
 
-  verifyFinger(): Observable<any> {
-    return this.http.get(`${environment.base_api}${BioConst.verifyPath}`)
+  verifyFinger(): Observable<BioVerify> {
+
+    const requestParmas: BioVerifyRequest = {
+      aplicacionOrigen: 'FTI',
+      codigoTienda: '100',
+      dniAutorizador: environment.bioConfig.dni_authorizer,
+      ipCliente: '127.0.0.1',
+      registroRF: 'S36413',
+      codigoTransaccion: 'BIO',
+      host: 'XXX',
+      indicadorCalidadDedo: '',
+      huellaTemplate: '',
+      macCliente: 'MAC-XXX-MAC-XX',
+      indicadorDedo: this.nextFinger,
+      numeroDocumento: this.inputUser.documentNumber,
+      numeroSolicitud: '',
+      tipoDocumento: 'DNI',
+      tipoVerificacion: '3',
+      usuario: 'S36413'
+    };
+
+    const headers = this.headers;
+
+    const params = this.getParams(requestParmas);
+
+    return this.http.get(`${environment.base_api}${BioConst.verifyPath}`, { headers, params })
       .pipe(
-        delay(DELAY_RESPONSE + 1000),
         map((response: any) => {
           return response.MessageResponse.Body.verifyMorphoResponse.return as BioVerify;
         }),
@@ -161,7 +219,8 @@ export class BiometricService {
   inicialize(inputUser: InputUser): void {
     this.currentIntent = 0;
     this.isFinalIntent = false;
-    forkJoin([this.checkBiomatch(), this.getBestFingers(inputUser), this.getComputerInfo()])
+    this.inputUser = inputUser;
+    forkJoin([this.checkBiomatch(), this.getBestFingers(), this.getComputerInfo()])
       .pipe(
         finalize(() => console.log('End [biometric_service]'))
       )
