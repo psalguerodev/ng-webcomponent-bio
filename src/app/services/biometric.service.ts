@@ -53,10 +53,10 @@ export class BiometricService {
               private readonly httpNative: HttpnativeService) { }
 
   private getComputerInfo(): Observable<WinUser> {
-    return this.http.get(`${environment.base_api}${BioConst.wininfoPath}`)
+    return this.http.get(`${environment.base_agent}${BioConst.wininfoPath}`)
       .pipe(
         map((response: any) => {
-          return response.user as WinUser;
+          return response.body.user as WinUser;
         }),
         catchError(error => throwError(error))
       );
@@ -71,8 +71,6 @@ export class BiometricService {
     }
   }
 
-
-
   private getNextFinger(): void {
     this.incrementIntent();
     this.nextFinger =  BioValidators.getNextFinger(this.bioinfo, this.currentIntent);
@@ -82,11 +80,11 @@ export class BiometricService {
     const requestParams: BioInfoRequest = {
       coError: '',
       dniAutorizador: environment.bioConfig.dni_authorizer,
-      host: 'XXXNAMEXXX',
-      ipCliente: '127.0.0.1',
+      host: this.winuser.hostName,
+      ipCliente: this.winuser.ipAddress,
       isError: '',
       numeroDocumento: this.inputUser.documentNumber,
-      macCliente: 'MAC-XXX-MAC-XX',
+      macCliente: this.winuser.macAddress,
       numeroSolicitud: '',
       tipoDocumento: 'DNI',
       usuario: 'S36413'
@@ -173,7 +171,6 @@ export class BiometricService {
   }
 
   verifyFinger(): Observable<BioVerify> {
-
     const requestParmas: BioVerifyRequest = {
       aplicacionOrigen: 'FTI',
       codigoTienda: '100',
@@ -220,15 +217,22 @@ export class BiometricService {
     this.currentIntent = 0;
     this.isFinalIntent = false;
     this.inputUser = inputUser;
-    forkJoin([this.checkBiomatch(), this.getBestFingers(), this.getComputerInfo()])
+    forkJoin([this.checkBiomatch(), this.getComputerInfo()])
       .pipe(
         finalize(() => console.log('End [biometric_service]'))
       )
       .subscribe(responses => {
+        this.winuser = responses[1] as WinUser;
         this.isCheckBiomatch = responses[0] as boolean;
-        this.bioinfo = responses[1] as BioInfo;
-        this.winuser = responses[2] as WinUser;
-        this.inicialize$.next({  isError: false, message: '', isFinal: false });
+        
+        console.log(this.winuser);
+
+        this.getBestFingers().subscribe(response => {
+          this.bioinfo = response as BioInfo;
+          this.inicialize$.next({  isError: false, message: '', isFinal: false });
+        }, error => {
+          this.inicialize$.next({ isError: true, message: error, isFinal: false });
+        });
       }, error => {
         this.inicialize$.next({ isError: true, message: error, isFinal: false });
         console.log(error);

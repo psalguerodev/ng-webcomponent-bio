@@ -81,8 +81,7 @@ export class BioValidators {
   }
 
   static generateRequestCheck(): string {
-    return `<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/'
-              xmlns:ws='http://ws.client.match.bio.zy.com'>
+    return `<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:ws='http://ws.client.match.bio.zy.com/'>
         <soapenv:Header/>
         <soapenv:Body>
           <ws:check></ws:check>
