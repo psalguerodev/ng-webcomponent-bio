@@ -1,21 +1,19 @@
 import { Component, OnInit, Inject, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
-import { BiometricData } from '../../models/biometricdata.model';
 import { BiometricService, HandlerValidation } from '../../services/biometric.service';
 import { Subscription } from 'rxjs';
 import { BioConst } from '../../config/bio.const';
 import { BioVerify } from '../../models/bioverify.model';
+import { InputUser } from 'src/app/models/inputuser.model';
 
 @Component({
   selector: 'app-biometric-popup',
   templateUrl: './biometric-popup.component.html',
-  styleUrls: ['./biometric-popup.component.styl'],
-  encapsulation: ViewEncapsulation.None
+  styleUrls: ['./biometric-popup.component.styl']
 })
 export class BiometricPopupComponent implements OnInit, OnDestroy {
 
-  documentType: string;
-  documentNumber: string;
+  inputUser: InputUser;
   isInicialize: boolean;
 
   inicializeSubscription: Subscription;
@@ -36,21 +34,16 @@ export class BiometricPopupComponent implements OnInit, OnDestroy {
   handlerValidation: HandlerValidation;
 
   constructor(private readonly dialogRef: MatDialogRef<BiometricPopupComponent>,
-              @Inject(MAT_DIALOG_DATA) private readonly data: BiometricData,
+              @Inject(MAT_DIALOG_DATA) private readonly data: InputUser,
               private readonly biometricService: BiometricService) {
     dialogRef.disableClose = true;
     this.maxIntent = BioConst.defaultMaxIntent;
   }
 
   ngOnInit() {
-    this.documentNumber = this.data.documentNumber;
-    this.documentType = this.data.documentType;
-    this.biometricService.inicialize({
-      documentType: this.documentType,
-      documentNumber: this.documentNumber
-    });
-
     this.isLoading = true;
+    this.inputUser = this.data;
+    this.biometricService.inicialize(this.inputUser);
     this.inicializeSubscription = this.biometricService.inicialize$
       .subscribe((validation: HandlerValidation) => {
         this.isLoading = false;
@@ -78,13 +71,23 @@ export class BiometricPopupComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.handlerValidation = undefined;
     this.biometricService.validation$.subscribe((response: HandlerValidation) => {
+
+      console.log(response.isError);
+
+      if(!response.isError) {
+        console.log('Success validation!!')
+        this.showValidateOk = true;
+        this.showPreviewImages = true;
+      }
+
       this.currentFinger = this.biometricService.nextFinger;
       this.currentIntent = this.biometricService.currentIntent;
       this.isFinal = response.isFinal;
       this.isLoading = false;
       this.currentVerify = this.biometricService.bioverify;
       this.handlerValidation = response;
-      if ( this.isFinal) {
+      
+      if (this.isFinal) {
          setTimeout(_ => this.cancelValidation(true) , 2000);
       }
     });

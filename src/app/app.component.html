@@ -1,1 +1,11 @@
-<app-biometric-button [documentNumber]="'70570294'" [documentType]="'DNI'"></app-biometric-button>
+<app-biometric-button 
+    (eventFinishProcess)="handlerFinishProcess($event)"
+    [documentNumber]="'70570294'" 
+    [register]="'S36413'"
+    [store]="100"
+    [mode]="'popup'"
+    [channel]="'FTI'"
+    [documentType]="'DNI'">
+</app-biometric-button>
+
+<pre>{{ result | json }}</pre>

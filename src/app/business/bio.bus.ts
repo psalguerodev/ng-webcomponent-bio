@@ -81,7 +81,9 @@ export class BioValidators {
   }
 
   static generateRequestCheck(): string {
-    return `<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:ws='http://ws.client.match.bio.zy.com/'>
+    return `<?xml version='1.0' encoding='UTF-8'?>
+      <soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' 
+        xmlns:ws='http://ws.client.match.bio.zy.com/'>
         <soapenv:Header/>
         <soapenv:Body>
           <ws:check></ws:check>
@@ -96,15 +98,15 @@ export class BioValidators {
         <soapenv:Header />
         <soapenv:Body>
           <ws:bioTxn>
-            <arg0>200</arg0>
-            <arg1>200</arg1>
-            <arg2>${fingerNumber}</arg2>
-            <arg3>1</arg3>
-            <arg4>80</arg4>
-            <arg5>60</arg5>
-            <arg6>0</arg6>
-            <arg7>0</arg7>
-            <arg8>0</arg8>
+            <arg0>${BioConst.biomatchConfig.width}</arg0>
+            <arg1>${BioConst.biomatchConfig.height}</arg1>
+            <arg2>${BioConst.biomatchConfig.imgFlag}</arg2>
+            <arg3>${fingerNumber}</arg3>
+            <arg4>${BioConst.biomatchConfig.umbral}</arg4>
+            <arg5>${BioConst.biomatchConfig.timeout}</arg5>
+            <arg6>${BioConst.biomatchConfig.token}</arg6>
+            <arg7>${BioConst.biomatchConfig.visible}</arg7>
+            <arg8>${BioConst.biomatchConfig.response}</arg8>
           </ws:bioTxn>
         </soapenv:Body>
       </soapenv:Envelope>`;
@@ -118,7 +120,12 @@ export class BioValidators {
     const reniecStatus: BioStatus[] = BioConst.reniecStatus;
     const biogategayStatus: BioStatus[] = BioConst.bioGateyayStatus;
     const joinStatus = reniecStatus.concat(biogategayStatus);
-    message = joinStatus.find( s => s.code === status ).description;
+    let messageRes = joinStatus.find( s => s.code === status )
+    if(messageRes) {
+      message = messageRes.description;
+    }else {
+      message = 'Ocurrió un error';
+    }
     return message;
   }
 

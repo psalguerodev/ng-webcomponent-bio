@@ -3,7 +3,6 @@ import { MatDialog } from '@angular/material';
 import { BiometricPopupComponent } from '../biometric-popup/biometric-popup.component';
 import { HandlerValidation } from 'src/app/services/biometric.service';
 
-
 @Component({
   selector: 'app-biometric-button',
   templateUrl: './biometric-button.component.html',
@@ -15,6 +14,11 @@ export class BiometricButtonComponent implements OnInit {
 
   @Input() documentType: string;
   @Input() documentNumber: string;
+  @Input() mode: string;
+  @Input() register: string;
+  @Input() channel: string;
+  @Input() store: string;
+  @Input() transactionCode: string;
 
   @Output() eventFinishProcess: EventEmitter<HandlerValidation> = new EventEmitter<HandlerValidation>();
 
@@ -29,7 +33,12 @@ export class BiometricButtonComponent implements OnInit {
       width: '700px',
       data: {
         documentType: this.documentType,
-        documentNumber: this.documentNumber
+        documentNumber: this.documentNumber,
+        mode: this.mode,
+        channel: this.channel,
+        register: this.register,
+        store: this.store,
+        transactionCode: this.transactionCode
       }
     });
 

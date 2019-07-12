@@ -3,8 +3,8 @@ import httpNative from '../config/http.axios';
 import { fromPromise } from 'rxjs/internal/observable/fromPromise';
 import { Observable } from 'rxjs';
 import { AxiosResponse } from 'axios';
+import { BioConst } from '../config/bio.const';
 
-const TIMEOUT_NATIVE = 30000;
 @Injectable({
   providedIn: 'root'
 })
@@ -17,7 +17,7 @@ export class HttpnativeService {
       headers: {
         'Content-Type': 'text/xml'
       },
-      timeout: TIMEOUT_NATIVE
+      timeout: BioConst.defaultTimeoutNative
     }));
   }
 }

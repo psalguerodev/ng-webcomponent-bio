@@ -1,6 +1,7 @@
 import { Finger } from '../models/finger.model';
 import { BioStatus } from '../models/bio.status';
 import { environment } from 'src/environments/environment';
+import { BiomatchConfig } from '../models/biomatch.model';
 
 export class BioConst {
   static getInfoPath = `${environment.gategay_path}/biometria/biogateway/huella`;
@@ -8,6 +9,22 @@ export class BioConst {
   static wininfoPath  = '/uxagent/api/user';
   static biomatchPath = '/biomatch';
   static defaultMaxIntent = 4;
+  static defaultTimeoutBiomatch = 30000;
+  static defaultTimeoutCheckBiomatch = 10000;
+  static defaultTimeoutBioGateway = 30000;
+  static defaultTimeoutNative = 30000;
+  static biomatchConfig: BiomatchConfig = {
+    width: '256',
+    height: '394',
+    imgFlag: '2',
+    idFinger: '2',
+    umbral: '80',
+    timeout: '15',
+    token : '0',
+    visible: '0',
+    response: '444',
+  };
+
   static fingers: Finger[] = [
     { number: '1', name: 'PULGAR DERECHO', imageName: '/bio/finger_1.png' },
     { number: '2', name: 'ÍNDICE DERECHO', imageName: '/bio/finger_2.png' },
@@ -37,6 +54,7 @@ export class BioConst {
     { isError: false, code : '19064' },
   ];
   static bioGateyayStatus: BioStatus[] = [
+    { isError: false, code: '8000', description: 'Todas las operaciones se efectuaron correctamente'},
     { isError: true, code: '8001', description: '¡No se encontraron datos!' },
     { isError: true, code: '8015', description: '¡Posible dedo Falso!' },
     { isError: true, code: '8003', description: '¡Ocurrió un error al intentar conectar al webservice!' },
@@ -47,6 +65,15 @@ export class BioConst {
 
   static reniecStatus: BioStatus[] =  [
     { isError: false, code: '70006', description: ''},
-    { isError: true, code: '70007', description: '¡NO HIT: NO es posible identificar a la persona!'}
+    { isError: true, code: '70007', description: '¡NO HIT: NO es posible identificar a la persona!'},
+    { isError: true, code: '301', description: 'El usuario autorizador no existe' },
+    { isError: true, code: '313', description: 'ERROR NO MAPEADO' },
   ];
+
+  static messageResponse = {
+    TIMEOUT_BIOMATCH: 'El agente Biomatch Client no respondió en el tiempo esperado.',
+    TIMEOUT_BIOGATEGAY: 'El servicio de Biometría no respondió en el tiempo esperado.',
+    NODEVICE: 'El dispositivo biométrico no está conectado, por favor verificar.'
+  }
 }
+
