@@ -9,10 +9,12 @@ export class BioConst {
   static wininfoPath  = '/uxagent/api/user';
   static biomatchPath = '/biomatch';
   static defaultMaxIntent = 4;
+  static defaultTimeoutAgent = 10000;
   static defaultTimeoutBiomatch = 30000;
   static defaultTimeoutCheckBiomatch = 10000;
   static defaultTimeoutBioGateway = 30000;
   static defaultTimeoutNative = 30000;
+  static defaultTimeoutClosePopup = 4000;
   static biomatchConfig: BiomatchConfig = {
     width: '256',
     height: '394',
@@ -24,7 +26,6 @@ export class BioConst {
     visible: '0',
     response: '444',
   };
-
   static fingers: Finger[] = [
     { number: '1', name: 'PULGAR DERECHO', imageName: '/bio/finger_1.png' },
     { number: '2', name: 'ÍNDICE DERECHO', imageName: '/bio/finger_2.png' },
@@ -64,7 +65,7 @@ export class BioConst {
   ];
 
   static reniecStatus: BioStatus[] =  [
-    { isError: false, code: '70006', description: ''},
+    { isError: false, code: '70006', description: 'Se ha realizado HIT de la persona!'},
     { isError: true, code: '70007', description: '¡NO HIT: NO es posible identificar a la persona!'},
     { isError: true, code: '301', description: 'El usuario autorizador no existe' },
     { isError: true, code: '313', description: 'ERROR NO MAPEADO' },
@@ -73,7 +74,10 @@ export class BioConst {
   static messageResponse = {
     TIMEOUT_BIOMATCH: 'El agente Biomatch Client no respondió en el tiempo esperado.',
     TIMEOUT_BIOGATEGAY: 'El servicio de Biometría no respondió en el tiempo esperado.',
-    NODEVICE: 'El dispositivo biométrico no está conectado, por favor verificar.'
-  }
+    NODEVICE: 'El dispositivo biométrico no está conectado, por favor verificar.',
+    TIMEOUT_AGENT: 'El agent UXRF no respondió en el tiempo esperado.',
+    OPERATION_CANCELLED: 'El proceso de invocación biométrico a sido cancelado.',
+    HTTP_ERROR_RESPONSE: 'Ha ocurrido un error en la respuesta de algún servicio'
+  };
 }
 

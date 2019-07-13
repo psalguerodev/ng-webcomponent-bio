@@ -1,3 +1,4 @@
+ <!-- TODO Refactor ui and styles for this component -->
 <div class="container-popup">
   <div class="xbox-steps-header" *ngIf="isInicialize && !showError">
     Intento {{ currentIntent }} de {{ maxIntent }}
@@ -26,7 +27,7 @@
       <p *ngIf="currentVerify" style="color: darkblue;">
         {{ currentVerify.nombreCliente }} {{ currentVerify.apellidoPatCliente }} {{ currentVerify.apellidoMatCliente }}
       </p>
-      <p *ngIf="handlerValidation" style="color: darkred;">
+      <p *ngIf="handlerValidation" class="container-error">
         {{ handlerValidation.message }}
       </p>
       <p *ngIf="isFinal && handlerValidation.isError" style="color: darkred;">
@@ -42,6 +43,7 @@
     <!-- Validation finger OK -->
     <img [src]="'/bio/paw-ok.jpg' | image" class="ximg-hand" *ngIf="showPreviewImages && showValidateOk" />
 
+    <!-- TODO Add timer for invoke biometric -->
     <!-- <div class="xtop-text-paw" style="text-align: center">10 segundos</div> -->
 
     <div class="xg2-text-paw">
@@ -54,7 +56,7 @@
     </mat-progress-spinner>
   </div>
 
-  <div id="container-error" *ngIf="showError">
+  <div class="container-error" *ngIf="showError">
     {{ handlerValidation.message }}
   </div>
 

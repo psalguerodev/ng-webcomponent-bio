@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MatDialog } from '@angular/material';
 import { BiometricPopupComponent } from '../biometric-popup/biometric-popup.component';
-import { HandlerValidation } from 'src/app/services/biometric.service';
+import { HandlerValidation } from 'src/app/bio/services/biometric.service';
 
 @Component({
   selector: 'app-biometric-button',

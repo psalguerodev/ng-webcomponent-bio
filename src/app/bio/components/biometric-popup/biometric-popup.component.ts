@@ -1,10 +1,10 @@
-import { Component, OnInit, Inject, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 import { BiometricService, HandlerValidation } from '../../services/biometric.service';
 import { Subscription } from 'rxjs';
 import { BioConst } from '../../config/bio.const';
 import { BioVerify } from '../../models/bioverify.model';
-import { InputUser } from 'src/app/models/inputuser.model';
+import { InputUser } from 'src/app/bio/models/inputuser.model';
 
 @Component({
   selector: 'app-biometric-popup',
@@ -55,7 +55,7 @@ export class BiometricPopupComponent implements OnInit, OnDestroy {
           this.currentIntent = this.biometricService.currentIntent;
         } else {
           this.handlerValidation = { isError: true, message: validation.message , isFinal: false};
-          setTimeout(_ => this.cancelValidation(true) , 2000);
+          setTimeout(_ => this.cancelValidation(true) , BioConst.defaultTimeoutClosePopup);
         }
       });
   }
@@ -67,15 +67,15 @@ export class BiometricPopupComponent implements OnInit, OnDestroy {
     }
   }
 
-  initValidation() {
+  initValidation() { // TODO Handler emmit message when fail services
     this.isLoading = true;
     this.handlerValidation = undefined;
     this.biometricService.validation$.subscribe((response: HandlerValidation) => {
 
-      console.log(response.isError);
+      console.log(response);
 
       if(!response.isError) {
-        console.log('Success validation!!')
+        console.log('Success validation!!');
         this.showValidateOk = true;
         this.showPreviewImages = true;
       }
@@ -86,9 +86,9 @@ export class BiometricPopupComponent implements OnInit, OnDestroy {
       this.isLoading = false;
       this.currentVerify = this.biometricService.bioverify;
       this.handlerValidation = response;
-      
+
       if (this.isFinal) {
-         setTimeout(_ => this.cancelValidation(true) , 2000);
+         setTimeout(_ => this.cancelValidation(true) , BioConst.defaultTimeoutClosePopup);
       }
     });
     this.biometricService.inicializeValidation();
@@ -96,7 +96,11 @@ export class BiometricPopupComponent implements OnInit, OnDestroy {
 
   cancelValidation(invoke: boolean) {
     if (!invoke) {
-      this.handlerValidation = { isError: false, message: 'Se canceló la operación', isFinal: false};
+      this.handlerValidation = {
+        isError: false,
+        message: BioConst.messageResponse.OPERATION_CANCELLED,
+        isFinal: false
+      };
     }
     this.dialogRef.close(this.handlerValidation);
   }

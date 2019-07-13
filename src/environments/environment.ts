@@ -4,10 +4,9 @@
 
 export const environment = {
   production: false,
-  //base_api: 'https://api.psalguero.me',
-  base_api: 'https://dpiuat.grupoib.local:7020',
-  base_agent: 'https://api.psalguero.me',
-  base_biomatch: 'https://localhost:2222',
+  base_api: 'http://localhost:3000',
+  base_agent: 'http://localhost:3000',
+  base_biomatch: 'http://localhost:3000',
   assets_path: 'https://psalguero.sfo2.cdn.digitaloceanspaces.com',
   gategay_path: '/ibk/uat',
   bioConfig: {
@@ -17,6 +16,8 @@ export const environment = {
 };
 
 /*
+    base_api: 'https://dpiuat.grupoib.local:7020',
+    base_biomatch: 'https://localhost:2222',
  * For easier debugging in development mode, you can import the following file
  * to ignore zone related error stack frames such as `zone.run`, `zoneDelegate.invokeTask`.
  *
