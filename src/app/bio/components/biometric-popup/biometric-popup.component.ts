@@ -74,7 +74,7 @@ export class BiometricPopupComponent implements OnInit, OnDestroy {
 
       console.log(response);
 
-      if(!response.isError) {
+      if (!response.isError) {
         console.log('Success validation!!');
         this.showValidateOk = true;
         this.showPreviewImages = true;
