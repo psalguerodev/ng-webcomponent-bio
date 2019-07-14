@@ -28,7 +28,7 @@ export class BiometricButtonComponent implements OnInit {
   }
 
   invokePopUpBiometrics(): void {
-    console.log('Open [biometrics_component]');
+    console.log('[biometrics_component] Open');
     const dialogRef = this.dialog.open(BiometricPopupComponent, {
       width: '700px',
       data: {
@@ -43,9 +43,8 @@ export class BiometricButtonComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log('Closed [biometrics_component]');
+      console.log('[biometrics_component] Closed');
       this.resultProcess = result;
-      console.log(`Result --> `, this.resultProcess);
       this.eventFinishProcess.emit(this.resultProcess);
     });
   }

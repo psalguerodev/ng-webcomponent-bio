@@ -5,6 +5,7 @@ import { AppComponent } from './app.component';
 import { BioModule } from './bio/bio.module';
 import { BiometricButtonComponent } from './bio/components/biometric-button/biometric-button.component';
 import { BiometricPopupComponent } from './bio/components/biometric-popup/biometric-popup.component';
+import { FormsModule } from '@angular/forms';
 
 declare const customElements;
 
@@ -14,7 +15,8 @@ declare const customElements;
   ],
   imports: [
     BrowserModule,
-    BioModule
+    BioModule,
+    FormsModule
   ],
   bootstrap: [AppComponent],
   entryComponents: [

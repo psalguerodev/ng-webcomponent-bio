@@ -18,41 +18,46 @@
     </h3>
 
     <div class="xg2-descripcion" style="font-size: 16px;">
-      <p>
+      <p *ngIf="!showPreviewImages && !showValidateOk">
         Ingresa en el lector la huella indicada a continuación
       </p>
       <strong>
         <p>{{ inputUser.documentType }} | {{ inputUser.documentNumber }}</p>
       </strong>
       <p *ngIf="currentVerify" style="color: darkblue;">
-        {{ currentVerify.nombreCliente }} {{ currentVerify.apellidoPatCliente }} {{ currentVerify.apellidoMatCliente }}
+        {{ currentVerify.nombreCliente }} {{ currentVerify.apellidoPatCliente }}
+        {{ currentVerify.apellidoMatCliente }}
       </p>
-      <p *ngIf="handlerValidation" class="container-error">
+      <p *ngIf="handlerValidation && handlerValidation.isError"
+        class="container-error">
         {{ handlerValidation.message }}
       </p>
-      <p *ngIf="isFinal && handlerValidation.isError" style="color: darkred;">
+      <!-- <p *ngIf="isFinal && handlerValidation.isError" style="color: darkred;">
         Máximo de intentos alcanzados..
-      </p>
+      </p> -->
     </div>
 
     <!-- Reading finger -->
     <img [src]="'/bio/paw-step.gif' | image" class="ximg-hand"
       *ngIf="(showPreviewImages && !showValidateOk) || isLoading" />
     <!-- Finder by number -->
-    <img [src]="currentFinger | fingerimage | image" class="ximg-hand" *ngIf="!showPreviewImages && !isLoading" />
+    <img [src]="currentFinger | fingerimage | image" class="ximg-hand"
+      *ngIf="!showPreviewImages && !isLoading" />
     <!-- Validation finger OK -->
-    <img [src]="'/bio/paw-ok.jpg' | image" class="ximg-hand" *ngIf="showPreviewImages && showValidateOk" />
+    <img [src]="'/bio/paw-ok.jpg' | image" class="ximg-hand"
+      *ngIf="showPreviewImages && showValidateOk" />
 
     <!-- TODO Add timer for invoke biometric -->
     <!-- <div class="xtop-text-paw" style="text-align: center">10 segundos</div> -->
-
     <div class="xg2-text-paw">
       <p>{{ currentFinger | finger }}</p>
     </div>
   </div>
 
-  <div id="container-loader" *ngIf="(!isInicialize && !showError)" align="center">
-    <mat-progress-spinner [color]="'primary'" [diameter]="50" [mode]="'indeterminate'">
+  <div id="container-loader" *ngIf="(!isInicialize && !showError)"
+    align="center">
+    <mat-progress-spinner [color]="'primary'" [diameter]="50"
+      [mode]="'indeterminate'">
     </mat-progress-spinner>
   </div>
 
@@ -61,12 +66,15 @@
   </div>
 
   <div class="xfooter-popup" align="center">
-    <button [disabled]="(!isInicialize || isLoading) || isFinal" class="xbutton btn-initval"
-      style="display: inline;margin-right: 10px" (click)="initValidation()" mat-raised-button color="primary">
+    <button [disabled]="(!isInicialize || isLoading) || isFinal || isHit"
+      class="xbutton btn-initval"
+      style="display: inline;margin-right: 10px" (click)="initValidation()"
+      mat-raised-button color="primary">
       Iniciar validación
     </button>
-    <button [disabled]="isLoading" class="xbutton btn-initval" style="display: inline;"
-      (click)="cancelValidation(false)" mat-raised-button color="warn">
+    <button [disabled]="isLoading || isHit" class="xbutton btn-initval"
+      style="display: inline;"
+      (click)="closeModal(false)" mat-raised-button color="warn">
       Cancelar
     </button>
   </div>

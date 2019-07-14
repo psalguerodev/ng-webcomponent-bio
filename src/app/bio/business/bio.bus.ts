@@ -3,6 +3,12 @@ import { WinUser } from '../models/winuser.model';
 import { BioConst } from '../config/bio.const';
 import { BioVerify } from '../models/bioverify.model';
 import { BioStatus } from '../models/bio.status';
+import { BioOperation } from '../enums/bio.operation';
+
+export interface NextFinger {
+  finger: string;
+  bioOperation: BioOperation;
+}
 
 export class BioValidators {
 
@@ -11,6 +17,10 @@ export class BioValidators {
       return true;
     }
     return false;
+  }
+
+  private static setFingers(bioInfo: BioInfo): BioInfo {
+    return bioInfo;
   }
 
   static verifyInfoResponse(bioInfo: BioInfo): boolean {
@@ -35,54 +45,59 @@ export class BioValidators {
     const bioGatewayErrors: string[] = BioConst.bioGateyayStatus.filter(s => s.isError === true)
       .map(r => r.code);
 
-    if (verify !== undefined && errorsReniec.indexOf(verify.codigoRespuestaReniec) !== -1
-         && bioGatewayErrors.indexOf(verify.codigoRespuesta) !== -1 ) {
-      return true;
+    if (verify !== undefined && (errorsReniec.indexOf(verify.codigoRespuestaReniec) !== -1
+         || bioGatewayErrors.indexOf(verify.codigoRespuesta) !== -1) ) {
+      return false;
     }
 
-    return false;
+    return true;
   }
 
-  static getNextFinger(bioInfo: BioInfo, intent: number): string {
+  static getNextFinger(bioInfo: BioInfo, intent: number): NextFinger { // TODO Define bussines logic for invoke service
     // Business Logic
+    bioInfo = this.setFingers(bioInfo);
+    const nextFinger = { finger: '2', bioOperation: BioOperation.LOCAL  } as NextFinger;
+
     switch (intent) {
       case 1:
         if (this.validateGategayField(bioInfo.indHuellaDer)) {
-          return bioInfo.indHuellaDer;
+          return { finger: bioInfo.indHuellaDer, bioOperation: BioOperation.LOCAL };
         } else if ( this.validateGategayField(bioInfo.indHuellaIzq)) {
-          return bioInfo.indHuellaIzq;
+          return { finger: bioInfo.indHuellaIzq, bioOperation: BioOperation.LOCAL };
         } else if (this.validateGategayField(bioInfo.indMejorHuellaDer)) {
-          return bioInfo.indMejorHuellaDer;
+          return { finger: bioInfo.indMejorHuellaDer, bioOperation: BioOperation.RENIEC };
         } else {
-          return bioInfo.indMejorHuellaIzq;
+          return { finger: bioInfo.indMejorHuellaIzq, bioOperation: BioOperation.RENIEC };
         }
      case 2:
        if (this.validateGategayField(bioInfo.indHuellaIzq)) {
-         return bioInfo.indHuellaIzq;
+         return { finger: bioInfo.indHuellaIzq, bioOperation: BioOperation.LOCAL };
        } else if (this.validateGategayField(bioInfo.indMejorHuellaDer)) {
-         return bioInfo.indMejorHuellaDer;
+         return { finger: bioInfo.indMejorHuellaDer, bioOperation: BioOperation.RENIEC };
        } else {
-         return bioInfo.indMejorHuellaIzq;
+         return { finger: bioInfo.indMejorHuellaIzq, bioOperation: BioOperation.RENIEC };
        }
      case 3:
        if (this.validateGategayField(bioInfo.indMejorHuellaDer)) {
-         return bioInfo.indMejorHuellaDer;
+         return { finger: bioInfo.indMejorHuellaDer, bioOperation: BioOperation.RENIEC };
        } else {
-         return bioInfo.indMejorHuellaIzq;
+         return { finger: bioInfo.indMejorHuellaIzq, bioOperation: BioOperation.RENIEC };
        }
       case 4:
-        return bioInfo.indMejorHuellaIzq;
+        return { finger: bioInfo.indMejorHuellaIzq, bioOperation: BioOperation.RENIEC };
     }
-    return BioConst.fingers[1].number;
+    return nextFinger;
   }
 
-  static verifyBiomatchInvokeResponse(statusCode: string): boolean {
-    return true;
+  static verifyBiomatchInvokeResponse(statusCode: string): BioStatus {
+    const biomatchErrors = BioConst.biomatchStatus.filter( s => s.isError === true);
+    const hasError = biomatchErrors.find(p => p.code === statusCode);
+    return hasError || { isError: false, description: 'OK', code: '0000' };
   }
 
   static generateRequestCheck(): string {
     return `<?xml version='1.0' encoding='UTF-8'?>
-      <soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' 
+      <soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/'
         xmlns:ws='http://ws.client.match.bio.zy.com/'>
         <soapenv:Header/>
         <soapenv:Body>
@@ -112,19 +127,21 @@ export class BioValidators {
       </soapenv:Envelope>`;
   }
 
-  static findMessageByCode(status: string): string {
+  static findMessageByCode(status: string): string { // TODO Control errors by status
     let message = '';
     if (status === undefined) {
       return message;
     }
+
     const reniecStatus: BioStatus[] = BioConst.reniecStatus;
     const biogategayStatus: BioStatus[] = BioConst.bioGateyayStatus;
     const joinStatus = reniecStatus.concat(biogategayStatus);
-    let messageRes = joinStatus.find( s => s.code === status )
-    if(messageRes) {
+    const messageRes = joinStatus.find( s => s.code === status );
+
+    if (messageRes) {
       message = messageRes.description;
-    }else {
-      message = 'Ocurrió un error';
+    } else {
+      message = BioConst.messageResponse.UNKNOW_ERROR;
     }
     return message;
   }

@@ -60,15 +60,14 @@ export class BioConst {
     { isError: true, code: '8015', description: '¡Posible dedo Falso!' },
     { isError: true, code: '8003', description: '¡Ocurrió un error al intentar conectar al webservice!' },
     { isError: true, code: '8004', description: '¡Ocurrió un error al intentar conectar al webservice de RENIEC!' },
-    { isError: false, code: '8000' },
     { isError: false, code: '8002' },
   ];
 
   static reniecStatus: BioStatus[] =  [
-    { isError: false, code: '70006', description: 'Se ha realizado HIT de la persona!'},
     { isError: true, code: '70007', description: '¡NO HIT: NO es posible identificar a la persona!'},
     { isError: true, code: '301', description: 'El usuario autorizador no existe' },
     { isError: true, code: '313', description: 'ERROR NO MAPEADO' },
+    { isError: false, code: '70006', description: 'Se ha realizado HIT de la persona!'},
   ];
 
   static messageResponse = {
@@ -77,7 +76,9 @@ export class BioConst {
     NODEVICE: 'El dispositivo biométrico no está conectado, por favor verificar.',
     TIMEOUT_AGENT: 'El agent UXRF no respondió en el tiempo esperado.',
     OPERATION_CANCELLED: 'El proceso de invocación biométrico a sido cancelado.',
-    HTTP_ERROR_RESPONSE: 'Ha ocurrido un error en la respuesta de algún servicio'
+    HTTP_ERROR_RESPONSE: 'Ha ocurrido un error en la respuesta de los servicios biométricos',
+    UNKNOW_ERROR: 'Ha ocurrido un error desconocido',
+    BIOMATCH_CHECK_ERROR: 'Ha ocurrido un error al verificar Biomatch.'
   };
 }
 

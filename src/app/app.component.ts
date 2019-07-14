@@ -7,6 +7,7 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'webcomponent-biometrics';
+  documentNumber = '70570294';
   result: any;
 
   handlerFinishProcess(event: any) {

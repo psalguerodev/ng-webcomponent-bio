@@ -1,11 +1,14 @@
 <app-biometric-button
     (eventFinishProcess)="handlerFinishProcess($event)"
-    [documentNumber]="'70570294'" 
+    [documentNumber]="documentNumber"
     [register]="'S36413'"
-    [store]="100"
+    [store]="'100'"
+    [transactionCode]="'FTI-01'"
     [mode]="'popup'"
     [channel]="'FTI'"
     [documentType]="'DNI'">
 </app-biometric-button>
+
+<input type="text" [(ngModel)]="documentNumber" maxlength="8">
 
 <pre>{{ result | json }}</pre>

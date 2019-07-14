@@ -1,27 +1,28 @@
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
-import { catchError, map, tap, finalize, timeout } from 'rxjs/operators';
-import { throwError, Subject, Observable, forkJoin } from 'rxjs';
-import { WinUser } from '../models/winuser.model';
-import { BioInfo } from '../models/bioinfo.model';
-import { InputUser } from '../models/inputuser.model';
-import { BioConst } from '../config/bio.const';
-import { BioValidators } from '../business/bio.bus';
-import { HttpnativeService } from './httpnative.service';
 import { AxiosResponse } from 'axios';
-import { BioVerify } from '../models/bioverify.model';
+import { forkJoin, Observable, Subject } from 'rxjs';
+import { catchError, finalize, map, tap, timeout } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
+import { BioValidators, NextFinger } from '../business/bio.bus';
+import { BioConst } from '../config/bio.const';
 import { BioOperation } from '../enums/bio.operation';
-import { BioVerifyRequest } from '../models/request/bioverify.request';
-import { BioInfoRequest } from '../models/request/bioinfo.request';
 import { DocumentType } from '../enums/document.type';
+import { BioInfo } from '../models/bioinfo.model';
+import { BioVerify } from '../models/bioverify.model';
+import { InputUser } from '../models/inputuser.model';
+import { BioInfoRequest } from '../models/request/bioinfo.request';
+import { BioVerifyRequest } from '../models/request/bioverify.request';
+import { WinUser } from '../models/winuser.model';
 import { BiometricServiceBase } from './biomatric.base.service';
+import { HttpnativeService } from './httpnative.service';
 
 declare const DOMParser;
 
 export interface HandlerValidation {
   isFinal: boolean;
-  message: string;
+  message?: string;
+  isHit?: boolean;
   isError: boolean;
 }
 
@@ -46,7 +47,7 @@ export class BiometricService extends BiometricServiceBase {
 
   isFinalIntent = false;
   isCheckBiomatch: boolean;
-  nextFinger: string;
+  nextFinger: NextFinger;
   currentTemplate: string;
   currentIntent = 0;
 
@@ -72,9 +73,10 @@ export class BiometricService extends BiometricServiceBase {
   private getNextFinger(): void {
     this.incrementIntent();
     this.nextFinger = BioValidators.getNextFinger(this.bioinfo, this.currentIntent);
+    this.currentOperation = this.nextFinger.bioOperation;
   }
 
-  checkBiomatch(): Observable<boolean> {
+  private checkBiomatch(): Observable<boolean> {
     return this.httpNative.post<any>(`${environment.base_biomatch}${BioConst.biomatchPath}`,
       BioValidators.generateRequestCheck(), null)
       .pipe(
@@ -83,11 +85,13 @@ export class BiometricService extends BiometricServiceBase {
           return ((response.data as string).indexOf('OK') !== -1) ? true : false;
         }),
         catchError(error => {
-          return this.handlerObservableError(error, BioConst.messageResponse.TIMEOUT_BIOGATEGAY);
+          console.log('[check_biomatch]');
+          return this.handlerObservableError('Biomatch Check', error,
+            BioConst.messageResponse.TIMEOUT_BIOGATEGAY, BioConst.messageResponse.BIOMATCH_CHECK_ERROR);
         }));
   }
 
-  getComputerInfo(): Observable<WinUser> {
+  private getComputerInfo(): Observable<WinUser> {
     return this.http.get(`${environment.base_agent}${BioConst.wininfoPath}`)
       .pipe(
         timeout(BioConst.defaultTimeoutAgent),
@@ -96,12 +100,12 @@ export class BiometricService extends BiometricServiceBase {
         }),
         catchError(error => {
           console.log('[getComputerInfo] Catch error', error);
-          return this.handlerObservableError(error, BioConst.messageResponse.TIMEOUT_BIOMATCH);
+          return this.handlerObservableError('Ux Agent', error, BioConst.messageResponse.TIMEOUT_BIOMATCH);
         }),
       );
   }
 
-  getBestFingers() {
+  private getBestFingers() {
     const requestParams: BioInfoRequest = {
       coError: this.inputUser.channel,
       dniAutorizador: environment.bioConfig.dni_authorizer,
@@ -134,15 +138,15 @@ export class BiometricService extends BiometricServiceBase {
         ),
         catchError(error => {
           console.log('[getBestFingers] Catch error', error); // TODO Handler error
-          return this.handlerObservableError(error, BioConst.messageResponse.TIMEOUT_BIOGATEGAY);
+          return this.handlerObservableError('Mejores Huellas', error, BioConst.messageResponse.TIMEOUT_BIOGATEGAY, error.message);
         }),
       );
   }
 
-  invokeBiomatch(): Observable<BiomatchTemplateReponse> {
-    console.log(`[invokeBiomatch] Next Finger is ${this.nextFinger}`);
-    return this.httpNative.post<any>(`${environment.base_biomatch}${BioConst.biomatchPath}`,
-      BioValidators.generateRequestVerify(this.nextFinger), null)
+  private invokeBiomatch(): Observable<BiomatchTemplateReponse> {
+    console.log(`[invokeBiomatch] Next Finger is ${this.nextFinger.finger}`);
+    return this.httpNative.post(`${environment.base_biomatch}${BioConst.biomatchPath}`,
+      BioValidators.generateRequestVerify(this.nextFinger.finger), null)
       .pipe(
         timeout(BioConst.defaultTimeoutBiomatch),
         map(response => {
@@ -153,21 +157,24 @@ export class BiometricService extends BiometricServiceBase {
           const resultSplit: string[] = resultResponse.split(':');
           const codeResponse = resultSplit[0]; // Status reponse
 
-          if (!BioValidators.verifyBiomatchInvokeResponse(codeResponse)) {
-            throw new Error('Error.....'); // TODO Handler error of biomatach agent
+          const verifyBiomatchResponse = BioValidators.verifyBiomatchInvokeResponse(codeResponse);
+
+          if (!verifyBiomatchResponse || verifyBiomatchResponse.isError) {
+            throw new Error(verifyBiomatchResponse.description);
           }
 
           const fingerTemplate = BioValidators.transformResponseBiomatch(resultSplit[1]);
           return { isError: false, template: fingerTemplate } as BiomatchTemplateReponse;
         }),
         catchError(error => {
-          console.log('[invokeBiomatch] Catch error', error);
-          return this.handlerObservableError(error, BioConst.messageResponse.TIMEOUT_BIOMATCH);
+          console.log(error.name);
+          console.log('[invokeBiomatch] Catch error', (error.message || error));
+          return this.handlerObservableError('Biomatch', error , BioConst.messageResponse.TIMEOUT_BIOMATCH, error.message);
         }),
       );
   }
 
-  verifyFinger(): Observable<BioVerify> {
+  private verifyFinger(): Observable<BioVerify> {
     const requestParmas: BioVerifyRequest = {
       aplicacionOrigen: this.inputUser.channel,
       codigoTienda: this.inputUser.store,
@@ -176,14 +183,14 @@ export class BiometricService extends BiometricServiceBase {
       registroRF: this.inputUser.register,
       codigoTransaccion: this.inputUser.transactionCode,
       host: this.winuser.hostName,
-      indicadorCalidadDedo: '',
+      indicadorCalidadDedo: '80',
       huellaTemplate: this.currentTemplate,
       macCliente: this.winuser.macAddress,
-      indicadorDedo: this.nextFinger,
+      indicadorDedo: this.nextFinger.finger,
       numeroDocumento: this.inputUser.documentNumber,
       numeroSolicitud: '',
       tipoDocumento: DocumentType.DNI,
-      tipoVerificacion: BioOperation.RENIEC,
+      tipoVerificacion: this.currentOperation,
       usuario: this.inputUser.register
     };
 
@@ -200,16 +207,14 @@ export class BiometricService extends BiometricServiceBase {
           this.bioverify = verify;
           this.getNextFinger();
 
-          if (!BioValidators.verifyValidFinger(verify)) {
-            if (this.currentOperation === BioOperation.LOCAL) {
-              throw new Error(BioValidators.findMessageByCode(verify.descripcionRespuesta)).message;
-            }
+          if (!BioValidators.verifyValidFinger(verify)) { // TODO Validate correct errors to status code
+            console.log('[verifyFinger] Error validate finger');
             throw new Error(BioValidators.findMessageByCode(verify.codigoRespuestaReniec)).message;
           }
         }),
         catchError(error => {
           console.log('[verifyFinger] ', error);
-          return this.handlerObservableError(error, BioConst.messageResponse.TIMEOUT_BIOGATEGAY);
+          return this.handlerObservableError('Verificar huellas', error, BioConst.messageResponse.TIMEOUT_BIOGATEGAY, error.message);
         })
       );
   }
@@ -246,9 +251,8 @@ export class BiometricService extends BiometricServiceBase {
     this.invokeBiomatch().subscribe((templateResonse: BiomatchTemplateReponse) => {
       this.currentTemplate = templateResonse.template;
       this.verifyFinger().subscribe((response) => {
-        console.log('[verifyFinger] Hit validation', response);
-        this.validation$.next({ message: 'Este es un mensaje', isFinal: this.isFinalIntent, isError: false });
-      }, error => this.validation$.next({ isError: true, message: error, isFinal: this.isFinalIntent }));
+        this.validation$.next({ isFinal: this.isFinalIntent, isError: false, isHit: true });
+      }, error => this.validation$.next({ isError: true, message: error, isFinal: this.isFinalIntent, isHit: false }));
 
     }, error => {
       this.validation$.next({ isError: true, message: error, isFinal: this.isFinalIntent });

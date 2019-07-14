@@ -6,16 +6,23 @@ import { Injectable } from '@angular/core';
 @Injectable({
   providedIn: 'root'
 })
-export  class BiometricServiceBase {
+export abstract class BiometricServiceBase {
 
   constructor() {}
 
-  public handlerObservableError(error: any, message: string = BioConst.messageResponse.TIMEOUT_BIOGATEGAY): Observable<never> {
+  // TODO Refactor this method
+  public handlerObservableError(origin: string, error: any, message?: string, errorMessage?: string): Observable<never> {
     if (error.name === 'TimeoutError') {
-      return throwError(message);
-    } else if ( error.name === 'HttpErrorResponse') {
-      // TODO Handler error status !== 200
-      return throwError(BioConst.messageResponse.HTTP_ERROR_RESPONSE);
+      return throwError(`${origin} - ${message}`);
+    } else if (error.name === 'HttpErrorResponse') {
+      return throwError(`${origin} - ${BioConst.messageResponse.HTTP_ERROR_RESPONSE}`);
+    } else if (error.name === 'Error') {
+      if (error.message === 'Network Error') {
+        return throwError(`${origin} - Ups! a ocurrido un error de red, verifica tu conexión.`);
+      } else if (error.message.indexOf('400') !== -1 ) {
+        return throwError(`${origin} - Se envió un solicitud incorrecta.`);
+      }
+      return throwError(`${origin} - ${errorMessage}`);
     }
     return throwError(error);
   }
