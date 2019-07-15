@@ -4,11 +4,13 @@
 This project has been made with angular and angular material 8.
 
 ## Run
+
 ### Install Dependencies
 * `npm install`
 
 ### Run with environment local
 * `ng serve --configuration=local`
+
 ### Test
 * `npm run test`
 
@@ -23,6 +25,7 @@ This project has been made with angular and angular material 8.
 ### Add script in your project
 * `<script src="ibkcdn.com/bio/v1/main.js" async=true>`
 * or dynamic load 🎯
+
 ```typescript
   loadScript(idScript): void {
         if (!document.getElementById(idScript)) {
@@ -68,6 +71,7 @@ This project has been made with angular and angular material 8.
 ```
 
 * Sample handler `resolveProcess`
+
 ```typescript
   export class AppComponent {
     result: HandlerValidation;
