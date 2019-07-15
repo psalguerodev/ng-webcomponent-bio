@@ -138,7 +138,8 @@ export class BiometricService extends BiometricServiceBase {
         }),
         tap((bioInfo: BioInfo) => {
           if (!BioValidators.verifyInfoResponse(bioInfo)) {
-            throw new Error('Invalid response Bio Info'); // TODO ✅ Handler error by Status Response
+            // throw new Error('Invalid response Bio Info'); // TODO ✅ Handler error by Status Response
+            throw new Error(BioValidators.findMessageByCode(bioInfo.codigoRespuesta)).message;
           }
           this.bioinfo = bioInfo;
           this.getNextFinger();

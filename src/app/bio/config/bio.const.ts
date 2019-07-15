@@ -9,8 +9,8 @@ export class BioConst {
   static wininfoPath  = '/uxagent/api/user';
   static biomatchPath = '/biomatch';
   static defaultMaxIntent = 4;
-  static defaultTimeoutAgent = 10000;
-  static defaultTimeoutCheckBiomatch = 10000;
+  static defaultTimeoutAgent = 15000;
+  static defaultTimeoutCheckBiomatch = 15000;
   static defaultTimeoutBioGateway = 30000;
   static defaultTimeoutClosePopup = 4000;
   static defaultTimeoutNative = 35000;
@@ -56,8 +56,10 @@ export class BioConst {
     { isError: false, code : '19064' },
   ];
   static bioGateyayStatus: BioStatus[] = [
-    { isError: false, code: '8000', description: 'Todas las operaciones se efectuaron correctamente'},
-    { isError: true, code: '8001', description: '¡No se encontraron datos!' },
+    { isError: false, code: '8000', description: 'Todas las operaciones se efectuaron correctamente.'},
+    { isError: false, code: '8027', description: 'Todas las operaciones se efectuaron.'},
+    { isError: true, code: '8001', description: '¡No se encontraron datos del cliente!' },
+    { isError: true, code: '8082', description: 'Ocurrió una excepcion en los servicios de biometría' },
     { isError: true, code: '8015', description: '¡Posible dedo Falso!' },
     { isError: true, code: '8003', description: '¡Ocurrió un error al intentar conectar al webservice!' },
     { isError: true, code: '8004', description: '¡Ocurrió un error al intentar conectar al webservice de RENIEC!' },
@@ -67,7 +69,9 @@ export class BioConst {
   static reniecStatus: BioStatus[] =  [
     { isError: true, code: '70007', description: '¡NO HIT: NO es posible identificar a la persona!'},
     { isError: true, code: '301', description: 'El usuario autorizador no existe' },
-    { isError: true, code: '313', description: 'ERROR NO MAPEADO' },
+    { isError: true, code: '313', description: 'Error no mapeado.' },
+    { isError: true, code: '308', description: 'El DNI del ciudadano no es válido.' },
+    { isError: true, code: '70019', description: 'Error no mapeado.' },
     { isError: false, code: '70006', description: 'Se ha realizado HIT de la persona!'},
   ];
 

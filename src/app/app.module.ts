@@ -16,9 +16,9 @@ declare const customElements;
   imports: [
     BrowserModule,
     BioModule,
-    // FormsModule
+    FormsModule
   ],
-  // bootstrap: [AppComponent],
+  bootstrap: [AppComponent],
   entryComponents: [
     BiometricButtonComponent,
     BiometricPopupComponent,
