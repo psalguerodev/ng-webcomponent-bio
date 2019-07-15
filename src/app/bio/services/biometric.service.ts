@@ -15,14 +15,16 @@ import { BioInfoRequest } from '../models/request/bioinfo.request';
 import { BioVerifyRequest } from '../models/request/bioverify.request';
 import { WinUser } from '../models/winuser.model';
 import { BiometricServiceBase } from './biomatric.base.service';
-import { HttpnativeService } from './httpnative.service';
+import { HttpnativeService, NativeOptions } from './httpnative.service';
 
 declare const DOMParser;
 
 export interface HandlerValidation {
-  isFinal: boolean;
-  message?: string;
+  isFinal?: boolean;
   isHit?: boolean;
+  message?: string;
+  isCanceled?: boolean;
+  isTimeout?: boolean;
   isError: boolean;
 }
 
@@ -38,12 +40,16 @@ export class BiometricService extends BiometricServiceBase {
 
   inicialize$: Subject<HandlerValidation> = new Subject<HandlerValidation>();
   validation$: Subject<HandlerValidation> = new Subject<HandlerValidation>();
+  timer$: Subject<string> = new Subject<string>();
 
-  inputUser: InputUser;
+  inputUser: InputUser; // Input data from webcomponent
   winuser: WinUser;
   bioinfo: BioInfo;
   bioverify: BioVerify;
   currentOperation: BioOperation;
+
+  timerInterval;
+  timeValidation = BioConst.defaultTimeValidationInSeconds;
 
   isFinalIntent = false;
   isCheckBiomatch: boolean;
@@ -55,6 +61,10 @@ export class BiometricService extends BiometricServiceBase {
     'Content-Type': 'application/json',
     'X-IBM-Client-Id': environment.bioConfig.x_ibm_client_id
   });
+
+  private nativeOptions: NativeOptions = {
+      headers: { 'Content-Type': 'text/xml' }
+    };
 
   constructor(private readonly http: HttpClient,
               private readonly httpNative: HttpnativeService) {
@@ -78,14 +88,13 @@ export class BiometricService extends BiometricServiceBase {
 
   private checkBiomatch(): Observable<boolean> {
     return this.httpNative.post<any>(`${environment.base_biomatch}${BioConst.biomatchPath}`,
-      BioValidators.generateRequestCheck(), null)
+      this.generateRequestCheck(), this.nativeOptions)
       .pipe(
         timeout(BioConst.defaultTimeoutCheckBiomatch),
         map((response: AxiosResponse<any>) => {
           return ((response.data as string).indexOf('OK') !== -1) ? true : false;
         }),
         catchError(error => {
-          console.log('[check_biomatch]');
           return this.handlerObservableError('Biomatch Check', error,
             BioConst.messageResponse.TIMEOUT_BIOGATEGAY, BioConst.messageResponse.BIOMATCH_CHECK_ERROR);
         }));
@@ -99,7 +108,6 @@ export class BiometricService extends BiometricServiceBase {
           return response.body.user as WinUser;
         }),
         catchError(error => {
-          console.log('[getComputerInfo] Catch error', error);
           return this.handlerObservableError('Ux Agent', error, BioConst.messageResponse.TIMEOUT_BIOMATCH);
         }),
       );
@@ -130,14 +138,13 @@ export class BiometricService extends BiometricServiceBase {
         }),
         tap((bioInfo: BioInfo) => {
           if (!BioValidators.verifyInfoResponse(bioInfo)) {
-            throw new Error('Invalidad response Bio Info'); // TODO Handler error by Status Response
+            throw new Error('Invalid response Bio Info'); // TODO ✅ Handler error by Status Response
           }
           this.bioinfo = bioInfo;
           this.getNextFinger();
         },
         ),
         catchError(error => {
-          console.log('[getBestFingers] Catch error', error); // TODO Handler error
           return this.handlerObservableError('Mejores Huellas', error, BioConst.messageResponse.TIMEOUT_BIOGATEGAY, error.message);
         }),
       );
@@ -146,9 +153,9 @@ export class BiometricService extends BiometricServiceBase {
   private invokeBiomatch(): Observable<BiomatchTemplateReponse> {
     console.log(`[invokeBiomatch] Next Finger is ${this.nextFinger.finger}`);
     return this.httpNative.post(`${environment.base_biomatch}${BioConst.biomatchPath}`,
-      BioValidators.generateRequestVerify(this.nextFinger.finger), null)
+      this.generateRequestVerify(this.nextFinger.finger), this.nativeOptions)
       .pipe(
-        timeout(BioConst.defaultTimeoutBiomatch),
+        timeout(BioConst.defaultTimeValidationInSeconds * 1000), // Mileseconds
         map(response => {
           const parser = new DOMParser();
           const xmlResponse = parser.parseFromString(response.data, 'text/xml');
@@ -167,8 +174,6 @@ export class BiometricService extends BiometricServiceBase {
           return { isError: false, template: fingerTemplate } as BiomatchTemplateReponse;
         }),
         catchError(error => {
-          console.log(error.name);
-          console.log('[invokeBiomatch] Catch error', (error.message || error));
           return this.handlerObservableError('Biomatch', error , BioConst.messageResponse.TIMEOUT_BIOMATCH, error.message);
         }),
       );
@@ -183,7 +188,7 @@ export class BiometricService extends BiometricServiceBase {
       registroRF: this.inputUser.register,
       codigoTransaccion: this.inputUser.transactionCode,
       host: this.winuser.hostName,
-      indicadorCalidadDedo: '80',
+      indicadorCalidadDedo: '1',
       huellaTemplate: this.currentTemplate,
       macCliente: this.winuser.macAddress,
       indicadorDedo: this.nextFinger.finger,
@@ -207,16 +212,26 @@ export class BiometricService extends BiometricServiceBase {
           this.bioverify = verify;
           this.getNextFinger();
 
-          if (!BioValidators.verifyValidFinger(verify)) { // TODO Validate correct errors to status code
-            console.log('[verifyFinger] Error validate finger');
+          if (!BioValidators.verifyValidFinger(verify)) { // TODO ✅ Validate correct errors to status code
             throw new Error(BioValidators.findMessageByCode(verify.codigoRespuestaReniec)).message;
           }
         }),
         catchError(error => {
-          console.log('[verifyFinger] ', error);
           return this.handlerObservableError('Verificar huellas', error, BioConst.messageResponse.TIMEOUT_BIOGATEGAY, error.message);
         })
       );
+  }
+
+  private initTimerValidation(): void {
+    this.timerInterval = setInterval(() => {
+      this.timer$.next(this.timeValidation.toString());
+      this.timeValidation--;
+    }, 1000);
+  }
+
+  private finishTimerValidation(): void {
+    clearInterval(this.timerInterval);
+    this.timeValidation = BioConst.defaultTimeValidationInSeconds;
   }
 
   inicialize(inputUser: InputUser): void {
@@ -229,7 +244,6 @@ export class BiometricService extends BiometricServiceBase {
         this.isCheckBiomatch = responses[0] as boolean;
 
         if (!this.isCheckBiomatch) {
-          console.log('[NODEVICE] ' + BioConst.messageResponse.NODEVICE);
           this.inicialize$.next({ isError: true, message: BioConst.messageResponse.NODEVICE, isFinal: false });
           return;
         }
@@ -238,7 +252,7 @@ export class BiometricService extends BiometricServiceBase {
           .pipe(finalize(() => console.log('[bio_inicialize] successfull')))
           .subscribe(response => {
             this.bioinfo = response as BioInfo;
-            this.inicialize$.next({ isError: false, message: '', isFinal: false });
+            this.inicialize$.next({ isError: false, isFinal: false });
           }, error => {
             this.inicialize$.next({ isError: true, message: error, isFinal: false });
           });
@@ -248,9 +262,13 @@ export class BiometricService extends BiometricServiceBase {
   }
 
   inicializeValidation(): void {
-    this.invokeBiomatch().subscribe((templateResonse: BiomatchTemplateReponse) => {
+    this.initTimerValidation();
+    this.invokeBiomatch()
+    .pipe(finalize(() => this.finishTimerValidation()))
+    .subscribe((templateResonse: BiomatchTemplateReponse) => {
       this.currentTemplate = templateResonse.template;
-      this.verifyFinger().subscribe((response) => {
+      this.verifyFinger()
+      .subscribe( _ => {
         this.validation$.next({ isFinal: this.isFinalIntent, isError: false, isHit: true });
       }, error => this.validation$.next({ isError: true, message: error, isFinal: this.isFinalIntent, isHit: false }));
 

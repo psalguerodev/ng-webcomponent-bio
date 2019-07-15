@@ -1,4 +1,4 @@
- <!-- TODO Refactor ui and styles for this component -->
+ <!-- REFACTOR ️⚙️ ui and styles for this component -->
 <div class="container-popup">
   <div class="xbox-steps-header" *ngIf="isInicialize && !showError">
     Intento {{ currentIntent }} de {{ maxIntent }}
@@ -47,8 +47,8 @@
     <img [src]="'/bio/paw-ok.jpg' | image" class="ximg-hand"
       *ngIf="showPreviewImages && showValidateOk" />
 
-    <!-- TODO Add timer for invoke biometric -->
-    <!-- <div class="xtop-text-paw" style="text-align: center">10 segundos</div> -->
+    <!-- TODO ✅ Add timer for invoke biometric -->
+    <div class="xtop-text-paw" style="text-align: center" *ngIf="timer && isLoading"> {{timer}} segundos</div>
     <div class="xg2-text-paw">
       <p>{{ currentFinger | finger }}</p>
     </div>

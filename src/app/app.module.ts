@@ -1,11 +1,11 @@
 import { Injector, NgModule } from '@angular/core';
 import { createCustomElement } from '@angular/elements';
+import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { AppComponent } from './app.component';
 import { BioModule } from './bio/bio.module';
 import { BiometricButtonComponent } from './bio/components/biometric-button/biometric-button.component';
 import { BiometricPopupComponent } from './bio/components/biometric-popup/biometric-popup.component';
-import { FormsModule } from '@angular/forms';
 
 declare const customElements;
 
@@ -16,9 +16,9 @@ declare const customElements;
   imports: [
     BrowserModule,
     BioModule,
-    FormsModule
+    // FormsModule
   ],
-  bootstrap: [AppComponent],
+  // bootstrap: [AppComponent],
   entryComponents: [
     BiometricButtonComponent,
     BiometricPopupComponent,
@@ -26,13 +26,13 @@ declare const customElements;
 })
 export class AppModule {
 
-  constructor(private readonly injector: Injector) {}
+  constructor(private readonly injector: Injector) { }
 
   ngDoBootstrap(): void {
-    console.log('[ibk-bio] inicialize');
+    console.log(`[ibk-wc-bio] inicialize`);
     const { injector } = this;
     const ngCustomElement = createCustomElement(BiometricButtonComponent, { injector });
-    customElements.define('ibk-bio', ngCustomElement);
+    customElements.define('ibk-wc-bio', ngCustomElement);
   }
 
 }

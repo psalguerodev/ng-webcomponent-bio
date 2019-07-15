@@ -20,7 +20,7 @@ export class BiometricButtonComponent implements OnInit {
   @Input() store: string;
   @Input() transactionCode: string;
 
-  @Output() eventFinishProcess: EventEmitter<HandlerValidation> = new EventEmitter<HandlerValidation>();
+  @Output() resolveProcess: EventEmitter<HandlerValidation> = new EventEmitter<HandlerValidation>();
 
   constructor(private readonly dialog: MatDialog) { }
 
@@ -45,7 +45,7 @@ export class BiometricButtonComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       console.log('[biometrics_component] Closed');
       this.resultProcess = result;
-      this.eventFinishProcess.emit(this.resultProcess);
+      this.resolveProcess.emit(this.resultProcess);
     });
   }
 

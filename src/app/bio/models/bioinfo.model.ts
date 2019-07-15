@@ -7,4 +7,5 @@ export interface BioInfo {
   indMejorHuellaIzq: string;
   numeroDocumento: string;
   tipoDocumento: string;
+  isChanged?: boolean;
 }

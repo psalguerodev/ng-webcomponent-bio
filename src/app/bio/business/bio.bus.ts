@@ -20,11 +20,20 @@ export class BioValidators {
   }
 
   private static setFingers(bioInfo: BioInfo): BioInfo {
+
+    if (bioInfo.indHuellaDer === undefined || bioInfo.indHuellaDer === '0') {
+      bioInfo.indHuellaDer = bioInfo.indMejorHuellaDer;
+    }
+
+    if ( bioInfo.indHuellaIzq === undefined || bioInfo.indHuellaIzq === '0') {
+      bioInfo.indHuellaIzq = bioInfo.indMejorHuellaIzq;
+      bioInfo.isChanged = true;
+    }
+
     return bioInfo;
   }
 
   static verifyInfoResponse(bioInfo: BioInfo): boolean {
-    // Service Logic
     const bioGategayErrors: string[] = BioConst.bioGateyayStatus
                                       .filter( s => s.isError === true).map(s => s.code);
     if (bioInfo.indMejorHuellaDer === undefined || bioGategayErrors.indexOf(bioInfo.codigoRespuesta) !== -1) {
@@ -34,12 +43,10 @@ export class BioValidators {
   }
 
   static verifyComputerInfoResponse(winUser: WinUser): boolean {
-    // Service Logic
     return true;
   }
 
   static verifyValidFinger(verify: BioVerify): boolean {
-    // Service Logic
     const errorsReniec: string[] = BioConst.reniecStatus.filter(s => s.isError === true)
       .map(r => r.code);
     const bioGatewayErrors: string[] = BioConst.bioGateyayStatus.filter(s => s.isError === true)
@@ -53,10 +60,9 @@ export class BioValidators {
     return true;
   }
 
-  static getNextFinger(bioInfo: BioInfo, intent: number): NextFinger { // TODO Define bussines logic for invoke service
-    // Business Logic
-    bioInfo = this.setFingers(bioInfo);
+  static getNextFinger(bioInfo: BioInfo, intent: number): NextFinger { // TODO ✅ Define bussines logic for invoke service
     const nextFinger = { finger: '2', bioOperation: BioOperation.LOCAL  } as NextFinger;
+    bioInfo = this.setFingers(bioInfo);
 
     switch (intent) {
       case 1:
@@ -95,39 +101,7 @@ export class BioValidators {
     return hasError || { isError: false, description: 'OK', code: '0000' };
   }
 
-  static generateRequestCheck(): string {
-    return `<?xml version='1.0' encoding='UTF-8'?>
-      <soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/'
-        xmlns:ws='http://ws.client.match.bio.zy.com/'>
-        <soapenv:Header/>
-        <soapenv:Body>
-          <ws:check></ws:check>
-        </soapenv:Body>
-      </soapenv:Envelope>`;
-  }
-
-  static generateRequestVerify(fingerNumber: string): string {
-    return `<?xml version='1.0' encoding='UTF-8'?>
-      <soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/'
-        xmlns:ws='http://ws.client.match.bio.zy.com/'>
-        <soapenv:Header />
-        <soapenv:Body>
-          <ws:bioTxn>
-            <arg0>${BioConst.biomatchConfig.width}</arg0>
-            <arg1>${BioConst.biomatchConfig.height}</arg1>
-            <arg2>${BioConst.biomatchConfig.imgFlag}</arg2>
-            <arg3>${fingerNumber}</arg3>
-            <arg4>${BioConst.biomatchConfig.umbral}</arg4>
-            <arg5>${BioConst.biomatchConfig.timeout}</arg5>
-            <arg6>${BioConst.biomatchConfig.token}</arg6>
-            <arg7>${BioConst.biomatchConfig.visible}</arg7>
-            <arg8>${BioConst.biomatchConfig.response}</arg8>
-          </ws:bioTxn>
-        </soapenv:Body>
-      </soapenv:Envelope>`;
-  }
-
-  static findMessageByCode(status: string): string { // TODO Control errors by status
+  static findMessageByCode(status: string): string {
     let message = '';
     if (status === undefined) {
       return message;

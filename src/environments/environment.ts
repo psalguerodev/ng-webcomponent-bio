@@ -4,9 +4,9 @@
 
 export const environment = {
   production: false,
-  base_api: 'http://localhost:3000',
-  base_agent: 'http://localhost:3000',
-  base_biomatch: 'http://localhost:3000',
+  base_api: 'https://api.psalguero.me',
+  base_agent: 'https://api.psalguero.me',
+  base_biomatch: 'https://api.psalguero.me',
   assets_path: 'https://psalguero.sfo2.cdn.digitaloceanspaces.com',
   gategay_path: '/ibk/uat',
   bioConfig: {

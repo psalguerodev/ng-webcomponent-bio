@@ -1,10 +1,10 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
-import { InputUser } from '../../models/inputuser.model';
 import { Subscription } from 'rxjs';
-import { BioVerify } from '../../models/bioverify.model';
-import { HandlerValidation, BiometricService } from '../../services/biometric.service';
 import { BioConst } from '../../config/bio.const';
+import { BioVerify } from '../../models/bioverify.model';
+import { InputUser } from '../../models/inputuser.model';
+import { BiometricService, HandlerValidation } from '../../services/biometric.service';
 
 @Component({
   selector: 'app-biometric-popup',
@@ -18,6 +18,7 @@ export class BiometricPopupComponent implements OnInit, OnDestroy {
 
   inicializeSubscription: Subscription;
   validationSubscription: Subscription;
+  timerSubscription: Subscription;
 
   isLoading: boolean;
   isFinal = false;
@@ -30,6 +31,7 @@ export class BiometricPopupComponent implements OnInit, OnDestroy {
   currentFinger: string;
   currentIntent: number;
   maxIntent: number;
+  timer: string;
 
   currentVerify: BioVerify;
   handlerValidation: HandlerValidation;
@@ -46,6 +48,11 @@ export class BiometricPopupComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.inputUser = this.data;
     this.biometricService.inicialize(this.inputUser);
+
+    if (!this.timerSubscription) {
+      this.timerSubscription = this.biometricService.timer$.subscribe((time: string) => this.timer = time);
+    }
+
     this.inicializeSubscription = this.biometricService.inicialize$
       .subscribe((validation: HandlerValidation) => {
         this.isLoading = false;
@@ -69,23 +76,34 @@ export class BiometricPopupComponent implements OnInit, OnDestroy {
     if (this.validationSubscription) {
       this.validationSubscription.unsubscribe();
     }
-    console.log(`Destroy [biometric_component]`);
+    if (this.timerSubscription) {
+      this.timerSubscription.unsubscribe();
+    }
+    console.log(`Destroy [biometric_component] and [unsubscribe]`);
   }
 
-  initValidation() { // TODO Handler emmit message when fail services
+  initValidation() {
     this.isLoading = true;
     this.handlerValidation = undefined;
     this.handlerValidationSubscription();
     this.biometricService.inicializeValidation();
   }
 
-  handlerValidationSubscription(): void { // TODO Handler unsubcribe process
+  handlerValidationSubscription(): void { // TODO ✅ Handler unsubcribe process
     if (!this.validationSubscription) {
       console.log(`Subscription validation init`);
       this.validationSubscription = this.biometricService.validation$.subscribe((response: HandlerValidation) => {
-        if (!response.isError) {
+        this.handlerValidation = response;
+        this.timer = null;
+
+        if (response.isHit) { // Is HIT Validation
           this.showValidateOk = true;
           this.showPreviewImages = true;
+          setTimeout(_ => this.closeModal(true), 2000);
+        }
+
+        if (response.isFinal && response.isError) {
+          setTimeout(_ => this.closeModal(true), 2000);
         }
 
         this.currentFinger = this.biometricService.nextFinger.finger;
@@ -94,8 +112,6 @@ export class BiometricPopupComponent implements OnInit, OnDestroy {
         this.isFinal = response.isFinal;
         this.isLoading = false;
         this.currentVerify = this.biometricService.bioverify;
-        this.handlerValidation = response;
-
       });
     }
   }
@@ -105,7 +121,7 @@ export class BiometricPopupComponent implements OnInit, OnDestroy {
       this.handlerValidation = {
         isError: false,
         message: BioConst.messageResponse.OPERATION_CANCELLED,
-        isFinal: false
+        isCanceled: true
       };
     }
     this.dialogRef.close(this.handlerValidation);

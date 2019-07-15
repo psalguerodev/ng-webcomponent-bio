@@ -10,11 +10,12 @@ export class BioConst {
   static biomatchPath = '/biomatch';
   static defaultMaxIntent = 4;
   static defaultTimeoutAgent = 10000;
-  static defaultTimeoutBiomatch = 30000;
   static defaultTimeoutCheckBiomatch = 10000;
   static defaultTimeoutBioGateway = 30000;
-  static defaultTimeoutNative = 30000;
   static defaultTimeoutClosePopup = 4000;
+  static defaultTimeoutNative = 35000;
+  static defaultTimeoutBiomatch = 30000;
+  static defaultTimeValidationInSeconds = 30;
   static biomatchConfig: BiomatchConfig = {
     width: '256',
     height: '394',
@@ -75,7 +76,7 @@ export class BioConst {
     TIMEOUT_BIOGATEGAY: 'El servicio de Biometría no respondió en el tiempo esperado.',
     NODEVICE: 'El dispositivo biométrico no está conectado, por favor verificar.',
     TIMEOUT_AGENT: 'El agent UXRF no respondió en el tiempo esperado.',
-    OPERATION_CANCELLED: 'El proceso de invocación biométrico a sido cancelado.',
+    OPERATION_CANCELLED: 'El proceso de validación biométrico a sido cancelado.',
     HTTP_ERROR_RESPONSE: 'Ha ocurrido un error en la respuesta de los servicios biométricos',
     UNKNOW_ERROR: 'Ha ocurrido un error desconocido',
     BIOMATCH_CHECK_ERROR: 'Ha ocurrido un error al verificar Biomatch.'
