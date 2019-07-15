@@ -24,7 +24,8 @@ This project has been made with angular and angular material 8.
 ## Use
 ### Add script in your project
 * `<script src="ibkcdn.com/bio/v1/main.js" async=true>`
-* or dynamic load 🎯
+* Or dynamic load
+
 
 ```typescript
   loadScript(idScript): void {
@@ -70,7 +71,7 @@ This project has been made with angular and angular material 8.
   }
 ```
 
-* Sample handler `resolveProcess`
+* Sample handler `resolveProcess` event
 
 ```typescript
   export class AppComponent {
