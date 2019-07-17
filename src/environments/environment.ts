@@ -10,10 +10,10 @@ export const environment = {
   assets_path: 'https://psalguero.sfo2.cdn.digitaloceanspaces.com',
   gategay_path: '/ibk/uat',
   bioConfig: {
-    dni_authorizer: '46025767',
+    dniAuthorizer: '46025767',
     x_ibm_client_id: 'a668bb85-8159-4b03-bed6-a8a46380cc78'
   }
-}
+};
 
 /*
     base_api: 'https://dpiuat.grupoib.local:7020',

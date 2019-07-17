@@ -42,7 +42,7 @@ export class BiometricService extends BiometricServiceBase {
   validation$: Subject<HandlerValidation> = new Subject<HandlerValidation>();
   timer$: Subject<string> = new Subject<string>();
 
-  inputUser: InputUser; // Input data from webcomponent
+  inputUser: InputUser; // Input data from webcomponent host
   winuser: WinUser;
   bioinfo: BioInfo;
   bioverify: BioVerify;
@@ -63,12 +63,15 @@ export class BiometricService extends BiometricServiceBase {
   });
 
   private nativeOptions: NativeOptions = {
-      headers: { 'Content-Type': 'text/xml' }
-    };
+    headers: { 'Content-Type': 'text/xml' }
+  };
+
+  private readonly bioValidator: BioValidators;
 
   constructor(private readonly http: HttpClient,
               private readonly httpNative: HttpnativeService) {
     super();
+    this.bioValidator = new BioValidators();
   }
 
   private incrementIntent(): void {
@@ -82,7 +85,7 @@ export class BiometricService extends BiometricServiceBase {
 
   private getNextFinger(): void {
     this.incrementIntent();
-    this.nextFinger = BioValidators.getNextFinger(this.bioinfo, this.currentIntent);
+    this.nextFinger = this.bioValidator.getNextFinger(this.bioinfo, this.currentIntent);
     this.currentOperation = this.nextFinger.bioOperation;
   }
 
@@ -116,13 +119,13 @@ export class BiometricService extends BiometricServiceBase {
   private getBestFingers() {
     const requestParams: BioInfoRequest = {
       coError: this.inputUser.channel,
-      dniAutorizador: environment.bioConfig.dni_authorizer,
+      dniAutorizador: environment.bioConfig.dniAuthorizer,
       host: this.winuser.hostName,
       ipCliente: this.winuser.ipAddress,
       isError: 'false',
       numeroDocumento: this.inputUser.documentNumber,
       macCliente: this.winuser.macAddress,
-      numeroSolicitud: '',
+      numeroSolicitud: window.location.host,
       tipoDocumento: '1',
       usuario: this.inputUser.register
     };
@@ -137,9 +140,8 @@ export class BiometricService extends BiometricServiceBase {
           return response.MessageResponse.Body.getInfoResponse.return as BioInfo;
         }),
         tap((bioInfo: BioInfo) => {
-          if (!BioValidators.verifyInfoResponse(bioInfo)) {
-            // throw new Error('Invalid response Bio Info'); // TODO ✅ Handler error by Status Response
-            throw new Error(BioValidators.findMessageByCode(bioInfo.codigoRespuesta)).message;
+          if (!this.bioValidator.verifyInfoResponse(bioInfo)) {
+            throw new Error(this.bioValidator.findMessageByCode(bioInfo.codigoRespuesta)).message;
           }
           this.bioinfo = bioInfo;
           this.getNextFinger();
@@ -152,7 +154,6 @@ export class BiometricService extends BiometricServiceBase {
   }
 
   private invokeBiomatch(): Observable<BiomatchTemplateReponse> {
-    console.log(`[invokeBiomatch] Next Finger is ${this.nextFinger.finger}`);
     return this.httpNative.post(`${environment.base_biomatch}${BioConst.biomatchPath}`,
       this.generateRequestVerify(this.nextFinger.finger), this.nativeOptions)
       .pipe(
@@ -165,17 +166,18 @@ export class BiometricService extends BiometricServiceBase {
           const resultSplit: string[] = resultResponse.split(':');
           const codeResponse = resultSplit[0]; // Status reponse
 
-          const verifyBiomatchResponse = BioValidators.verifyBiomatchInvokeResponse(codeResponse);
+          const verifyBiomatchResponse = this.bioValidator.verifyBiomatchInvokeResponse(codeResponse);
 
-          if (!verifyBiomatchResponse || verifyBiomatchResponse.isError) {
+          if (!verifyBiomatchResponse || verifyBiomatchResponse.isError) {
             throw new Error(verifyBiomatchResponse.description);
           }
 
-          const fingerTemplate = BioValidators.transformResponseBiomatch(resultSplit[1]);
+          const fingerTemplate = this.bioValidator.transformResponseBiomatch(resultSplit[1]);
           return { isError: false, template: fingerTemplate } as BiomatchTemplateReponse;
         }),
         catchError(error => {
-          return this.handlerObservableError('Biomatch', error , BioConst.messageResponse.TIMEOUT_BIOMATCH, error.message);
+          return this.handlerObservableError('Biomatch', error,
+              BioConst.messageResponse.TIMEOUT_BIOMATCH, error.message);
         }),
       );
   }
@@ -184,7 +186,7 @@ export class BiometricService extends BiometricServiceBase {
     const requestParmas: BioVerifyRequest = {
       aplicacionOrigen: this.inputUser.channel,
       codigoTienda: this.inputUser.store,
-      dniAutorizador: environment.bioConfig.dni_authorizer,
+      dniAutorizador: environment.bioConfig.dniAuthorizer,
       ipCliente: this.winuser.ipAddress,
       registroRF: this.inputUser.register,
       codigoTransaccion: this.inputUser.transactionCode,
@@ -194,7 +196,7 @@ export class BiometricService extends BiometricServiceBase {
       macCliente: this.winuser.macAddress,
       indicadorDedo: this.nextFinger.finger,
       numeroDocumento: this.inputUser.documentNumber,
-      numeroSolicitud: '',
+      numeroSolicitud: window.location.host,
       tipoDocumento: DocumentType.DNI,
       tipoVerificacion: this.currentOperation,
       usuario: this.inputUser.register
@@ -213,12 +215,13 @@ export class BiometricService extends BiometricServiceBase {
           this.bioverify = verify;
           this.getNextFinger();
 
-          if (!BioValidators.verifyValidFinger(verify)) { // TODO ✅ Validate correct errors to status code
-            throw new Error(BioValidators.findMessageByCode(verify.codigoRespuestaReniec)).message;
+          if (!this.bioValidator.verifyValidFinger(verify)) {
+            throw new Error(this.bioValidator.findMessageByCode(verify.codigoRespuestaReniec)).message;
           }
         }),
         catchError(error => {
-          return this.handlerObservableError('Verificar huellas', error, BioConst.messageResponse.TIMEOUT_BIOGATEGAY, error.message);
+          return this.handlerObservableError('Verificar huellas', error,
+              BioConst.messageResponse.TIMEOUT_BIOGATEGAY, error.message);
         })
       );
   }
@@ -245,12 +248,12 @@ export class BiometricService extends BiometricServiceBase {
         this.isCheckBiomatch = responses[0] as boolean;
 
         if (!this.isCheckBiomatch) {
-          this.inicialize$.next({ isError: true, message: BioConst.messageResponse.NODEVICE, isFinal: false });
+          this.inicialize$.next({ isError: true,
+            message: BioConst.messageResponse.NODEVICE, isFinal: false });
           return;
         }
 
         this.getBestFingers()
-          .pipe(finalize(() => console.log('[bio_inicialize] successfull')))
           .subscribe(response => {
             this.bioinfo = response as BioInfo;
             this.inicialize$.next({ isError: false, isFinal: false });
@@ -265,16 +268,18 @@ export class BiometricService extends BiometricServiceBase {
   inicializeValidation(): void {
     this.initTimerValidation();
     this.invokeBiomatch()
-    .pipe(finalize(() => this.finishTimerValidation()))
-    .subscribe((templateResonse: BiomatchTemplateReponse) => {
-      this.currentTemplate = templateResonse.template;
-      this.verifyFinger()
-      .subscribe( _ => {
-        this.validation$.next({ isFinal: this.isFinalIntent, isError: false, isHit: true });
-      }, error => this.validation$.next({ isError: true, message: error, isFinal: this.isFinalIntent, isHit: false }));
+      .pipe(finalize(() => this.finishTimerValidation()))
+      .subscribe((templateResonse: BiomatchTemplateReponse) => {
+        this.currentTemplate = templateResonse.template;
 
-    }, error => {
-      this.validation$.next({ isError: true, message: error, isFinal: this.isFinalIntent });
-    });
+        this.verifyFinger()
+          .subscribe(_ => {
+            this.validation$.next({ isFinal: this.isFinalIntent, isError: false, isHit: true });
+          }, error => this.validation$.next({ isError: true, message: error,
+                      isFinal: this.isFinalIntent, isHit: false }));
+
+      }, error => {
+        this.validation$.next({ isError: true, message: error, isFinal: this.isFinalIntent });
+      });
   }
 }

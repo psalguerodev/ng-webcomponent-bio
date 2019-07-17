@@ -6,10 +6,12 @@
     [store]="'100'"
     [transactionCode]="'FTI-01'"
     [mode]="'popup'"
+    [textButton]="'Validar con huella'"
+    [colorHex]="'#0039a6'"
     [channel]="'FTI'"
     [documentType]="'DNI'">
 </app-biometric-button>
 
 <input type="text" [(ngModel)]="documentNumber" maxlength="8">
 
-<pre>{{ result | json }}</pre> 
+<pre>{{ result | json }}</pre>

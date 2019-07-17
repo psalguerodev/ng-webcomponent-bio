@@ -1,12 +1,12 @@
-import { Finger } from '../models/finger.model';
-import { BioStatus } from '../models/bio.status';
 import { environment } from 'src/environments/environment';
+import { BioStatus } from '../models/bio.status';
 import { BiomatchConfig } from '../models/biomatch.model';
+import { Finger } from '../models/finger.model';
 
 export class BioConst {
   static getInfoPath = `${environment.gategay_path}/biometria/biogateway/huella`;
   static verifyPath = `${environment.gategay_path}/biometria/biogateway/huella/valida`;
-  static wininfoPath  = '/uxagent/api/user';
+  static wininfoPath = '/uxagent/api/user';
   static biomatchPath = '/biomatch';
   static defaultMaxIntent = 4;
   static defaultTimeoutAgent = 15000;
@@ -16,6 +16,9 @@ export class BioConst {
   static defaultTimeoutNative = 35000;
   static defaultTimeoutBiomatch = 30000;
   static defaultTimeValidationInSeconds = 30;
+  static defaultTextButton = 'Validar con huella';
+  static defaultHexColorButton = '#0039a6';
+  static defaultFingerNumber = '2';
   static biomatchConfig: BiomatchConfig = {
     width: '256',
     height: '394',
@@ -23,7 +26,7 @@ export class BioConst {
     idFinger: '2',
     umbral: '80',
     timeout: '15',
-    token : '0',
+    token: '0',
     visible: '0',
     response: '444',
   };
@@ -40,39 +43,48 @@ export class BioConst {
     { number: '10', name: 'MEÑIQUE IZQUIERDO', imageName: '/bio/finger_10.png' },
   ];
   static biomatchStatus: BioStatus[] = [
-    { isError: true, code: '19065', description: 'Ocurrió un error vuelva a intentarlo'},
-    { isError: true, code: '19014', description: 'El lector de huella requiere limpieza o se cancelo la captura de la huella'},
-    { isError: true, code: '19015', description: 'El lector de huella está desconectado o no se detecta'},
-    { isError: true, code: '19017', description: 'Ha superado el tiempo de espera para la captura de la huella'},
-    { isError: true, code: '19058', description: 'El dedo esta demasiado húmedo'},
-    { isError: true,  code: '19036', description: 'Posible dedo falso detectado'},
-    { isError: false, code : '19000' },
-    { isError: false, code : '19002' },
-    { isError: false, code : '19004' },
-    { isError: false, code : '19005' },
-    { isError: false, code : '19006' },
-    { isError: false, code : '19035' },
-    { isError: false, code : '19060' },
-    { isError: false, code : '19064' },
+    { isError: true, code: '19065', description: 'Ocurrió un error vuelva a intentarlo' },
+    { isError: true, code: '19014', description: 'El lector de huella requiere limpieza o se cancelo la captura de la huella' },
+    { isError: true, code: '19015', description: 'El lector de huella está desconectado o no se detecta' },
+    { isError: true, code: '19017', description: 'Ha superado el tiempo de espera para la captura de la huella' },
+    { isError: true, code: '19058', description: 'El dedo esta demasiado húmedo' },
+    { isError: true, code: '19036', description: 'Posible dedo falso detectado' },
+    { isError: false, code: '19000' },
+    { isError: false, code: '19002' },
+    { isError: false, code: '19004' },
+    { isError: false, code: '19005' },
+    { isError: false, code: '19006' },
+    { isError: false, code: '19035' },
+    { isError: false, code: '19060' },
+    { isError: false, code: '19064' },
   ];
   static bioGateyayStatus: BioStatus[] = [
-    { isError: false, code: '8000', description: 'Todas las operaciones se efectuaron correctamente.'},
-    { isError: false, code: '8027', description: 'Todas las operaciones se efectuaron.'},
+    { isError: false, code: '8000', description: 'Todas las operaciones se efectuaron correctamente.' },
+    { isError: false, code: '8027', description: 'Todas las operaciones se efectuaron.' },
     { isError: true, code: '8001', description: '¡No se encontraron datos del cliente!' },
-    { isError: true, code: '8082', description: 'Ocurrió una excepcion en los servicios de biometría' },
     { isError: true, code: '8015', description: '¡Posible dedo Falso!' },
+    { isError: true, code: '8006', description: 'Ocurrió un error en la captura de la huella' },
     { isError: true, code: '8003', description: '¡Ocurrió un error al intentar conectar al webservice!' },
     { isError: true, code: '8004', description: '¡Ocurrió un error al intentar conectar al webservice de RENIEC!' },
-    { isError: false, code: '8002' },
+    { isError: true, code: '8082', description: 'Ocurrió una excepcion en los servicios de biometría' },
+    { isError: true, code: '8002', description: 'Ocurrió una excepción en los servicios de biometría' },
   ];
 
-  static reniecStatus: BioStatus[] =  [
-    { isError: true, code: '70007', description: '¡NO HIT: NO es posible identificar a la persona!'},
+  static reniecStatus: BioStatus[] = [
+    { isError: false, code: '70006', description: 'Se ha realizado HIT de la persona!' },
+    { isError: true, code: '70007', description: '¡NO HIT: NO es posible identificar a la persona!' },
     { isError: true, code: '301', description: 'El usuario autorizador no existe' },
     { isError: true, code: '313', description: 'Error no mapeado.' },
     { isError: true, code: '308', description: 'El DNI del ciudadano no es válido.' },
     { isError: true, code: '70019', description: 'Error no mapeado.' },
-    { isError: false, code: '70006', description: 'Se ha realizado HIT de la persona!'},
+    { isError: true, code: '70015', description: 'El ciudadano no está en el AFIS RENIEC' },
+    { isError: true, code: '90033', description: 'Excedió la máxima cantidad de consultas.' },
+    { isError: true, code: '90035', description: 'No hay convenio vigente con Reniec.' },
+    { isError: true, code: '70014', description: 'Error al autenticar.' },
+    { isError: true, code: '70022', description: 'No hay conexión al servidor biométrico' },
+    { isError: true, code: '60000', description: 'El DNI no existe' },
+    { isError: true, code: '90013', description: 'Error al verificar huellas' },
+    { isError: true, code: '90018', description: 'Número de consultas excedido' },
   ];
 
   static messageResponse = {

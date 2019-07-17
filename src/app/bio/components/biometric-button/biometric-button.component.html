@@ -1,6 +1,7 @@
-<button color = "primary"
+<button color= "primary"
+        [style.background-color]="colorHex"
         mat-raised-button
         type="button"
         (click)="invokePopUpBiometrics()">
-        Verificar Biometría
+        {{ textButton }}
 </button>

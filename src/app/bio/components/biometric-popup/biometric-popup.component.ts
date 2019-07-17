@@ -64,7 +64,6 @@ export class BiometricPopupComponent implements OnInit, OnDestroy {
           this.currentIntent = this.biometricService.currentIntent;
         } else {
           this.handlerValidation = { isError: true, message: validation.message, isFinal: false };
-          setTimeout(_ => this.closeModal(true), BioConst.defaultTimeoutClosePopup);
         }
       });
   }
@@ -79,7 +78,6 @@ export class BiometricPopupComponent implements OnInit, OnDestroy {
     if (this.timerSubscription) {
       this.timerSubscription.unsubscribe();
     }
-    console.log(`Destroy [biometric_component] and [unsubscribe]`);
   }
 
   initValidation() {
@@ -89,29 +87,24 @@ export class BiometricPopupComponent implements OnInit, OnDestroy {
     this.biometricService.inicializeValidation();
   }
 
-  handlerValidationSubscription(): void { // TODO ✅ Handler unsubcribe process
+  handlerValidationSubscription(): void {
     if (!this.validationSubscription) {
-      console.log(`Subscription validation init`);
       this.validationSubscription = this.biometricService.validation$.subscribe((response: HandlerValidation) => {
         this.handlerValidation = response;
+        this.isHit = response.isHit;
         this.timer = null;
+        this.isLoading = false;
+        this.isFinal = response.isFinal;
+        this.currentVerify = this.biometricService.bioverify;
 
         if (response.isHit) { // Is HIT Validation
           this.showValidateOk = true;
           this.showPreviewImages = true;
-          setTimeout(_ => this.closeModal(true), 2000);
-        }
-
-        if (response.isFinal && response.isError) {
-          setTimeout(_ => this.closeModal(true), 2000);
+          return;
         }
 
         this.currentFinger = this.biometricService.nextFinger.finger;
-        this.isHit = response.isHit;
         this.currentIntent = this.biometricService.currentIntent;
-        this.isFinal = response.isFinal;
-        this.isLoading = false;
-        this.currentVerify = this.biometricService.bioverify;
       });
     }
   }

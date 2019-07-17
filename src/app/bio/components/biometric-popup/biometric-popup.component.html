@@ -1,4 +1,3 @@
- <!-- REFACTOR ️⚙️ ui and styles for this component -->
 <div class="container-popup">
   <div class="xbox-steps-header" *ngIf="isInicialize && !showError">
     Intento {{ currentIntent }} de {{ maxIntent }}
@@ -32,9 +31,6 @@
         class="container-error">
         {{ handlerValidation.message }}
       </p>
-      <!-- <p *ngIf="isFinal && handlerValidation.isError" style="color: darkred;">
-        Máximo de intentos alcanzados..
-      </p> -->
     </div>
 
     <!-- Reading finger -->
@@ -47,10 +43,9 @@
     <img [src]="'/bio/paw-ok.jpg' | image" class="ximg-hand"
       *ngIf="showPreviewImages && showValidateOk" />
 
-    <!-- TODO ✅ Add timer for invoke biometric -->
-    <div class="xtop-text-paw" style="text-align: center" *ngIf="timer && isLoading"> {{timer}} segundos</div>
     <div class="xg2-text-paw">
       <p>{{ currentFinger | finger }}</p>
+      <div class="xtop-text-paw" style="text-align: center" *ngIf="timer && isLoading"> {{timer}} segundos</div>
     </div>
   </div>
 
@@ -66,16 +61,27 @@
   </div>
 
   <div class="xfooter-popup" align="center">
-    <button [disabled]="(!isInicialize || isLoading) || isFinal || isHit"
+    <button
+      [disabled]="(!isInicialize || isLoading) || isFinal || isHit"
       class="xbutton btn-initval"
+      type="button"
       style="display: inline;margin-right: 10px" (click)="initValidation()"
       mat-raised-button color="primary">
       Iniciar validación
     </button>
-    <button [disabled]="isLoading || isHit" class="xbutton btn-initval"
+    <button *ngIf="!isHit || isFinal" [disabled]="isLoading || isHit" class="xbutton btn-initval"
       style="display: inline;"
+      type="button"
       (click)="closeModal(false)" mat-raised-button color="warn">
       Cancelar
+    </button>
+    <button
+      *ngIf="isFinal || isHit"
+      type="button"
+      class="xbutton btn-initval"
+      style="display: inline;margin-left: 10px" (click)="closeModal(true)"
+      mat-raised-button color="primary">
+      Terminar
     </button>
   </div>
 </div>
