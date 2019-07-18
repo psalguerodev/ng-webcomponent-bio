@@ -61,7 +61,7 @@ export class BioConst {
   static bioGateyayStatus: BioStatus[] = [
     { isError: false, code: '8000', description: 'Todas las operaciones se efectuaron correctamente.' },
     { isError: false, code: '8027', description: 'Todas las operaciones se efectuaron.' },
-    { isError: true, code: '8001', description: '¡No se encontraron datos del cliente!' },
+    { isError: false, code: '8001', description: '¡No se encontraron datos del cliente!' },
     { isError: true, code: '8015', description: '¡Posible dedo Falso!' },
     { isError: true, code: '8006', description: 'Ocurrió un error en la captura de la huella' },
     { isError: true, code: '8003', description: '¡Ocurrió un error al intentar conectar al webservice!' },
@@ -72,6 +72,7 @@ export class BioConst {
 
   static reniecStatus: BioStatus[] = [
     { isError: false, code: '70006', description: 'Se ha realizado HIT de la persona!' },
+    { isError: true, code: '5', description: 'El convenio de la entidad con RENIEC se encuentra deshabilitado' },
     { isError: true, code: '70007', description: '¡NO HIT: NO es posible identificar a la persona!' },
     { isError: true, code: '301', description: 'El usuario autorizador no existe' },
     { isError: true, code: '313', description: 'Error no mapeado.' },

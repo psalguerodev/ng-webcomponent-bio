@@ -99,17 +99,17 @@ export class BioValidators {
   }
 
   verifyValidFinger(verify: BioVerify): boolean {
-    const errorsReniec: string[] = BioConst.reniecStatus.filter(s => s.isError === true)
+    const successReniec: string[] = BioConst.reniecStatus.filter(s => s.isError === false)
       .map(r => r.code);
-    const bioGatewayErrors: string[] = BioConst.bioGateyayStatus.filter(s => s.isError === true)
+    const bioGatewaysuccess: string[] = BioConst.bioGateyayStatus.filter(s => s.isError === false)
       .map(r => r.code);
 
-    if (verify !== undefined && (errorsReniec.indexOf(verify.codigoRespuestaReniec) !== -1
-      || bioGatewayErrors.indexOf(verify.codigoRespuesta) !== -1)) {
-      return false;
+    if (verify !== undefined && (bioGatewaysuccess.indexOf(verify.codigoRespuestaReniec) !== -1
+      && bioGatewaysuccess.indexOf(verify.codigoRespuesta) !== -1)) {
+      return true;
     }
 
-    return true;
+    return false;
   }
 
   verifyBiomatchInvokeResponse(statusCode: string): BioStatus {

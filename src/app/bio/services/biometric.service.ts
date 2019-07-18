@@ -213,11 +213,11 @@ export class BiometricService extends BiometricServiceBase {
         }),
         tap((verify: BioVerify) => {
           this.bioverify = verify;
-          this.getNextFinger();
-
+          
           if (!this.bioValidator.verifyValidFinger(verify)) {
             throw new Error(this.bioValidator.findMessageByCode(verify.codigoRespuestaReniec)).message;
           }
+          this.getNextFinger();
         }),
         catchError(error => {
           return this.handlerObservableError('Verificar huellas', error,

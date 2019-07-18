@@ -1,8 +1,8 @@
 export const environment = {
   production: false,
-  base_api: 'http://localhost:3000',
-  base_agent: 'http://localhost:3000',
-  base_biomatch: 'http://localhost:3000',
+  base_api: 'https://dpiuat.grupoib.local:7020',
+  base_agent: 'https://localdev.uxagent.com:2223',
+  base_biomatch: 'https://localhost:2222',
   assets_path: 'https://psalguero.sfo2.cdn.digitaloceanspaces.com',
   gategay_path: '/ibk/uat',
   bioConfig: {
